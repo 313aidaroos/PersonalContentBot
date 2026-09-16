@@ -1,0 +1,188 @@
+:root {
+  --bg: #070708;
+  --ink: #f4efe6;
+  --muted: #9a9388;
+  --line: #2a2723;
+  --card: #121114;
+  --accent: #ff5a2a;
+  --good: #9ef0c2;
+  --warn: #f5c16c;
+  --bad: #ff8a7a;
+  --phone: #1a1816;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: radial-gradient(1200px 600px at 10% -10%, #2a140e 0%, transparent 50%), var(--bg);
+  color: var(--ink);
+  font: 16px/1.45 "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+}
+
+a { color: inherit; }
+
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 28px 20px 80px;
+}
+
+header.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+header.top h1 {
+  font-size: 22px;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+header.top p { margin: 0; color: var(--muted); font-size: 13px; }
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 22px;
+}
+@media (max-width: 860px) {
+  .grid { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: color-mix(in srgb, var(--card) 92%, black);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+label { display: block; font-size: 12px; color: var(--muted); margin: 12px 0 6px; }
+input, textarea, select, button {
+  font: inherit;
+  color: var(--ink);
+}
+input, textarea, select {
+  width: 100%;
+  background: #0c0c0e;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+textarea { min-height: 92px; resize: vertical; }
+
+button {
+  margin-top: 16px;
+  background: var(--accent);
+  border: 0;
+  color: #140802;
+  font-weight: 700;
+  padding: 12px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+button:disabled { opacity: 0.55; cursor: wait; }
+
+.jobs { display: flex; flex-direction: column; gap: 10px; }
+.job {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-decoration: none;
+}
+.job:hover { border-color: #4a433c; }
+.job b { display: block; font-size: 14px; }
+.job span { color: var(--muted); font-size: 12px; }
+.status {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  align-self: start;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+}
+.status.ready { color: var(--good); }
+.status.failed { color: var(--bad); }
+.status.queued, .status.scripting, .status.rendering { color: var(--warn); }
+
+.err { color: var(--bad); font-size: 13px; margin-top: 10px; }
+
+.studio {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+}
+@media (max-width: 860px) {
+  .studio { grid-template-columns: 1fr; }
+}
+
+.phone {
+  width: 320px;
+  max-width: 100%;
+  aspect-ratio: 9 / 16;
+  background: var(--phone);
+  border-radius: 28px;
+  border: 1px solid #3a342e;
+  padding: 18px 16px 28px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 80px #000a;
+}
+.phone .time { font-size: 12px; color: var(--muted); }
+.phone .visual {
+  margin-top: 18px;
+  font-size: 13px;
+  color: #d8cfc3;
+  min-height: 40%;
+}
+.phone .caption {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 22%;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  text-shadow: 0 2px 12px #000;
+}
+.phone .bar {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  height: 4px;
+  background: #2c2824;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.phone .bar > i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+}
+
+.meta { color: var(--muted); font-size: 13px; }
+.beat {
+  border-top: 1px solid var(--line);
+  padding: 12px 0;
+}
+.beat strong { display: block; font-size: 13px; }
+.beat p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+code, pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+pre {
+  background: #0c0c0e;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+}
