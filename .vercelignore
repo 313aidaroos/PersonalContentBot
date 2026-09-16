@@ -1,0 +1,4 @@
+bin/ffmpeg
+bin/ffmpeg.exe
+.env.local
+.env
