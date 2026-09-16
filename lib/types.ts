@@ -27,8 +27,19 @@ export type Storyboard = {
   frames: { t: number; caption: string; visual: string }[];
 };
 
+export type RenderEngine = "ffmpeg" | "xai" | "stub";
+
+export type RenderClip = {
+  source: "xai" | "slides";
+  start: number;
+  end: number;
+  prompt?: string;
+  requestId?: string;
+  model?: string;
+};
+
 export type RenderResult = {
-  engine: "ffmpeg" | "stub";
+  engine: RenderEngine;
   note: string;
   videoUrl?: string;
   bytes?: number;
@@ -36,6 +47,8 @@ export type RenderResult = {
   height?: number;
   durationSec?: number;
   contentType?: "video/mp4";
+  clips?: RenderClip[];
+  fallbackReason?: string;
 };
 
 export type Job = {

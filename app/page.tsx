@@ -100,7 +100,7 @@ export default function HomePage() {
                 </div>
                 <div className={`status ${job.status}`}>
                   {job.status}
-                  {job.render?.videoUrl ? " · mp4" : ""}
+                  {job.render?.engine === "xai" ? " · grok" : job.render?.videoUrl ? " · mp4" : ""}
                 </div>
               </a>
             ))}

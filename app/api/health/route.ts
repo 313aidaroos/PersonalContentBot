@@ -6,7 +6,12 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const ok = await pingTable();
-    return NextResponse.json({ ok, product: "PersonalContentBot", jobs: ok ? "up" : "down" });
+    return NextResponse.json({
+      ok,
+      product: "PersonalContentBot",
+      jobs: ok ? "up" : "down",
+      engines: { ffmpeg: true, xai: Boolean(process.env.XAI_API_KEY) },
+    });
   } catch (err) {
     return NextResponse.json(
       { ok: false, error: err instanceof Error ? err.message : String(err) },

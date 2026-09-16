@@ -107,6 +107,13 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
               {playing ? "Pause preview" : "Play preview"}
             </button>
           )}
+          {job.render ? (
+            <p className="meta">
+              engine: {job.render.engine}
+              {job.render.clips?.some((c) => c.source === "xai") ? " · Grok hero clip 0–15s" : ""}
+              {job.render.fallbackReason ? ` · fallback: ${job.render.fallbackReason}` : ""}
+            </p>
+          ) : null}
           {job.render ? <p className="meta">{job.render.note}</p> : null}
         </div>
 

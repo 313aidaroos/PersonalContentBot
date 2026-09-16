@@ -8,7 +8,7 @@ Queue a one-minute social video. This repo makes the job. Socixis posts it.
 - Real `pcb_jobs` table (Supabase)
 - Pipeline: queued → scripting → rendering → ready
 - Script (60s beats, captions VTT) and 9:16 storyboard
-- Real silent MP4 slideshow (ffmpeg) uploaded to storage
+- Real silent MP4 (ffmpeg): Grok Imagine hero clip for the first 15s when `XAI_API_KEY` is set, caption slides to 60s. Any xAI error (403, billing, timeout) falls back to slides only.
 - Posting stays with Socixis
 
 ## Local
