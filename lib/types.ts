@@ -27,9 +27,15 @@ export type Storyboard = {
   frames: { t: number; caption: string; visual: string }[];
 };
 
-export type RenderStub = {
-  engine: "stub";
+export type RenderResult = {
+  engine: "ffmpeg" | "stub";
   note: string;
+  videoUrl?: string;
+  bytes?: number;
+  width?: number;
+  height?: number;
+  durationSec?: number;
+  contentType?: "video/mp4";
 };
 
 export type Job = {
@@ -41,7 +47,7 @@ export type Job = {
   status: JobStatus;
   script: VideoScript | null;
   storyboard: Storyboard | null;
-  render: RenderStub | null;
+  render: RenderResult | null;
   error: string | null;
   created_at: string;
   updated_at: string;

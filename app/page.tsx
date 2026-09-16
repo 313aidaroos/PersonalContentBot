@@ -49,7 +49,7 @@ export default function HomePage() {
       <header className="top">
         <div>
           <h1>PersonalContentBot</h1>
-          <p>One-minute social videos. Queue a job. Script and storyboard land in the table. Posting is Socixis.</p>
+          <p>One-minute social videos. Queue a job. Script, storyboard, and an MP4 land in the table. Posting is Socixis.</p>
         </div>
       </header>
 
@@ -98,7 +98,10 @@ export default function HomePage() {
                   <b>{job.idea}</b>
                   <span>{new Date(job.created_at).toLocaleString()}</span>
                 </div>
-                <div className={`status ${job.status}`}>{job.status}</div>
+                <div className={`status ${job.status}`}>
+                  {job.status}
+                  {job.render?.videoUrl ? " · mp4" : ""}
+                </div>
               </a>
             ))}
           </div>

@@ -74,19 +74,39 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
 
       <div className="studio">
         <div>
-          <div className="phone" aria-label="9:16 preview">
-            <div className="time">
-              {t}s / {duration}s
+          {job.render?.videoUrl ? (
+            <video
+              className="phone"
+              src={job.render.videoUrl}
+              controls
+              playsInline
+              loop
+              style={{ objectFit: "cover", padding: 0, background: "#000" }}
+            />
+          ) : (
+            <div className="phone" aria-label="9:16 preview">
+              <div className="time">
+                {t}s / {duration}s
+              </div>
+              <div className="visual">{current?.visual}</div>
+              <div className="caption">{current?.onScreen}</div>
+              <div className="bar">
+                <i style={{ width: `${(t / duration) * 100}%` }} />
+              </div>
             </div>
-            <div className="visual">{current?.visual}</div>
-            <div className="caption">{current?.onScreen}</div>
-            <div className="bar">
-              <i style={{ width: `${(t / duration) * 100}%` }} />
-            </div>
-          </div>
-          <button type="button" onClick={() => setPlaying((p) => !p)}>
-            {playing ? "Pause preview" : "Play preview"}
-          </button>
+          )}
+          {job.render?.videoUrl ? (
+            <p>
+              <a href={job.render.videoUrl} download>
+                Download MP4
+              </a>
+              {job.render.bytes ? ` · ${Math.round(job.render.bytes / 1024)} KB` : ""}
+            </p>
+          ) : (
+            <button type="button" onClick={() => setPlaying((p) => !p)}>
+              {playing ? "Pause preview" : "Play preview"}
+            </button>
+          )}
           {job.render ? <p className="meta">{job.render.note}</p> : null}
         </div>
 

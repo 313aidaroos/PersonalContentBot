@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "setup-db": "node scripts/setup-db.mjs"
+    "setup-db": "node scripts/setup-db.mjs",
+    "postinstall": "node scripts/fetch-ffmpeg.mjs"
   },
   "engines": {
     "node": ">=20.0.0"

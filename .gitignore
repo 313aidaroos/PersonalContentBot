@@ -8,3 +8,5 @@ data
 *.db
 .vercel
 .DS_Store
+bin/ffmpeg
+bin/ffmpeg.exe

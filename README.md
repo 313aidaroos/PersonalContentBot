@@ -7,8 +7,9 @@ Queue a one-minute social video. This repo makes the job. Socixis posts it.
 - Web studio: enter an idea, get a job
 - Real `pcb_jobs` table (Supabase)
 - Pipeline: queued → scripting → rendering → ready
-- Script (60s beats, captions VTT) and 9:16 storyboard are real
-- MP4 render is stubbed on purpose (ffmpeg/Runway next)
+- Script (60s beats, captions VTT) and 9:16 storyboard
+- Real silent MP4 slideshow (ffmpeg) uploaded to storage
+- Posting stays with Socixis
 
 ## Local
 

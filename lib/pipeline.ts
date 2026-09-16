@@ -1,5 +1,6 @@
 import { insertJob, patchJob } from "./db";
 import { generateScript } from "./script";
+import { renderJobMp4 } from "./render";
 import type { Job, Orientation, Storyboard } from "./types";
 
 function storyboardFrom(job: Job): Storyboard {
@@ -46,13 +47,12 @@ export async function queueAndRun(input: {
     job = await patchJob(job.id, { status: "rendering", script });
 
     const storyboard = storyboardFrom({ ...job, script });
+    job = await patchJob(job.id, { storyboard });
+    const render = await renderJobMp4({ ...job, script, storyboard });
     job = await patchJob(job.id, {
       status: "ready",
       storyboard,
-      render: {
-        engine: "stub",
-        note: "Script and 9:16 storyboard are real. MP4 render (ffmpeg/Runway) is not wired on this slice. Socixis posts; this bot only makes the video job.",
-      },
+      render,
       error: null,
     });
     return job;
