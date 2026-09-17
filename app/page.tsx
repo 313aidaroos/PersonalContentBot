@@ -1,15 +1,19 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Job } from "@/lib/types";
+import CixyChatWidget from "@/components/CixyChatWidget";
 
 export default function HomePage() {
+  const router = useRouter();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [idea, setIdea] = useState("");
   const [niche, setNiche] = useState("");
   const [orientation, setOrientation] = useState<"vertical" | "horizontal">("vertical");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [authed, setAuthed] = useState(false);
 
   async function refresh() {
     const res = await fetch("/api/jobs", { cache: "no-store" });
@@ -19,8 +23,15 @@ export default function HomePage() {
   }
 
   useEffect(() => {
+    // Check if user is authenticated via cookie
+    const hasCookie = document.cookie.includes("auth_email");
+    if (!hasCookie) {
+      router.push("/auth");
+      return;
+    }
+    setAuthed(true);
     refresh().catch((e) => setError(e.message));
-  }, []);
+  }, [router]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -44,6 +55,8 @@ export default function HomePage() {
     }
   }
 
+  if (!authed) return null; // Loading state
+
   return (
     <main className="wrap">
       <header className="top">
@@ -51,6 +64,15 @@ export default function HomePage() {
           <h1>PersonalContentBot</h1>
           <p>One-minute social videos. Queue a job. Script, storyboard, and an MP4 land in the table. Posting is Socixis.</p>
         </div>
+        <button 
+          onClick={() => { 
+            document.cookie = "auth_email=; max-age=0";
+            router.push("/auth");
+          }}
+          style={{ position: "absolute", top: "20px", right: "20px", padding: "8px 16px" }}
+        >
+          Logout
+        </button>
       </header>
 
       <div className="grid">
@@ -107,6 +129,8 @@ export default function HomePage() {
           </div>
         </section>
       </div>
+
+      <CixyChatWidget />
     </main>
   );
 }
