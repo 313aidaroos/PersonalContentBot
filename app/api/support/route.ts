@@ -21,31 +21,40 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Store ticket in DB (would use Supabase)
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !serviceKey) {
+      return NextResponse.json({ error: "Support intake is not configured." }, { status: 503 });
+    }
     const ticket = {
-      id: `tk_${Date.now()}`,
       name,
       email,
       subject,
       message,
       priority: priority || "medium",
-      created_at: new Date().toISOString(),
       status: "open",
+      intake_address: SUPPORT_EMAIL,
+      route_to: OWNER_EMAIL,
     };
 
-    console.log(`[SUPPORT] New ticket: ${ticket.id} from ${email}`);
-    console.log(`  Subject: ${subject}`);
-    console.log(`  Priority: ${priority || "medium"}`);
-    console.log(`  Routing: ${SUPPORT_EMAIL} → ${OWNER_EMAIL}`);
-
-    // In production:
-    // 1. Save ticket to DB
-    // 2. Email SUPPORT_EMAIL → OWNER_EMAIL with ticket details
-    // 3. Send confirmation to user
+    const res = await fetch(`${supabaseUrl}/rest/v1/${process.env.PCB_SUPPORT_TABLE || "pcb_support_tickets"}`, {
+      method: "POST",
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify(ticket),
+    });
+    if (!res.ok) {
+      return NextResponse.json({ error: "Support request could not be saved." }, { status: 502 });
+    }
+    const [saved] = (await res.json()) as Array<{ id: string }>;
 
     return NextResponse.json(
       {
-        ticket_id: ticket.id,
+        ticket_id: saved.id,
         message: "Support request received. We'll get back to you shortly.",
         routed_to: OWNER_EMAIL,
       },

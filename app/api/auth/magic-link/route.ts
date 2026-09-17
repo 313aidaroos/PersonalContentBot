@@ -13,18 +13,12 @@ export async function POST(req: NextRequest) {
     const origin = req.headers.get("origin") || "https://personalcontentbot.vercel.app";
     await sendMagicLink(email, token, origin);
 
-    // Store token in Supabase for verification
-    // (Would use a real DB here; for now just send link)
-
-    return NextResponse.json({ 
-      message: "Magic link sent. Check your email.",
-      // In dev, return token for testing
-      ...(process.env.NODE_ENV === "development" && { token })
-    });
+    return NextResponse.json({ message: "Magic link sent. Check your email." });
   } catch (err) {
+    const status = (err as Error & { status?: number }).status ?? 500;
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Failed to send magic link" },
-      { status: 500 }
+      { status }
     );
   }
 }
