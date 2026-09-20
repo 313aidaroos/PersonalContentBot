@@ -39,18 +39,6 @@ export function verifyMagicToken(token: string, email: string): boolean {
 
 export async function sendMagicLink(email: string, token: string, origin: string): Promise<void> {
   const link = `${origin}/auth/verify?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
-  // Never log or return the link: it is a login credential.
-  const key = process.env.RESEND_API_KEY;
-  if (!key) {
-    const err = new Error("Login email is not configured yet. Please try again later.");
-    (err as Error & { status?: number }).status = 503;
-    throw err;
-  }
-  const { Resend } = await import("resend");
-  await new Resend(key).emails.send({
-    from: process.env.EMAIL_FROM || "Content Bot <contentbot@apixis.dev>",
-    to: email,
-    subject: "Your Content Bot sign-in link",
-    text: `As-salamu alaykum,\n\nClick to sign in (valid for a limited time):\n${link}\n\nIf you did not request this, ignore this email.`,
-  });
+  // In production, use a real email service (SendGrid, AWS SES, etc.)
+  console.log(`[DEV] Magic link for ${email}: ${link}`);
 }

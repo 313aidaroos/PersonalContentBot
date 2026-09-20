@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Job } from "@/lib/types";
 import CixyChatWidget from "@/components/CixyChatWidget";
+import { formatIxis, formatUsd } from "@/lib/pricing";
 
 export default function HomePage() {
   const router = useRouter();
@@ -62,17 +63,25 @@ export default function HomePage() {
       <header className="top">
         <div>
           <h1>PersonalContentBot</h1>
-          <p>One-minute social videos. Queue a job. Script, storyboard, and an MP4 land in the table. Posting is Socixis.</p>
+          <p>One-minute social videos. 800 Ixis · $8 per clip. <a href="/pricing" style={{ color: "var(--accent)" }}>See pricing</a></p>
         </div>
-        <button 
-          onClick={() => { 
-            document.cookie = "auth_email=; max-age=0";
-            router.push("/auth");
-          }}
-          style={{ position: "absolute", top: "20px", right: "20px", padding: "8px 16px" }}
-        >
-          Logout
-        </button>
+        <div style={{ display: "flex", gap: "8px", position: "absolute", top: "20px", right: "20px" }}>
+          <button 
+            onClick={() => router.push("/pricing")}
+            style={{ padding: "8px 16px", background: "var(--card)", color: "var(--ink)" }}
+          >
+            Pricing
+          </button>
+          <button 
+            onClick={() => { 
+              document.cookie = "auth_email=; max-age=0";
+              router.push("/auth");
+            }}
+            style={{ padding: "8px 16px" }}
+          >
+            Logout
+          </button>
+        </div>
       </header>
 
       <div className="grid">
@@ -105,8 +114,11 @@ export default function HomePage() {
             <option value="horizontal">16:9 YouTube</option>
           </select>
           <button type="submit" disabled={busy}>
-            {busy ? "Running pipeline…" : "Generate 60s job"}
+            {busy ? "Running pipeline…" : "Redeem · 800 Ixis"}
           </button>
+          <p style={{ margin: "8px 0 0", fontSize: "12px", color: "var(--muted)" }}>
+            800 Ixis · $8 per video clip. <a href="/pricing" style={{ color: "var(--accent)" }}>See pricing</a>
+          </p>
           {error ? <div className="err">{error}</div> : null}
         </form>
 
