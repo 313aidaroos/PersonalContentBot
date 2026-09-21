@@ -11,7 +11,7 @@ export type PricingSKU = {
 
 export const PRICING_CATALOG: PricingSKU[] = [
   {
-    id: "video-clip",
+    id: "contentbot.clip",
     name: "60s Video Clip",
     ixis: 800,
     usd: 8,
@@ -19,7 +19,7 @@ export const PRICING_CATALOG: PricingSKU[] = [
     type: "per-job",
   },
   {
-    id: "ai-text-job",
+    id: "contentbot.text",
     name: "AI Text Job",
     ixis: 40,
     usd: 0.4,
@@ -27,7 +27,7 @@ export const PRICING_CATALOG: PricingSKU[] = [
     type: "per-job",
   },
   {
-    id: "ai-image",
+    id: "contentbot.image",
     name: "AI Image",
     ixis: 150,
     usd: 1.5,
@@ -35,7 +35,7 @@ export const PRICING_CATALOG: PricingSKU[] = [
     type: "per-job",
   },
   {
-    id: "ad-set",
+    id: "contentbot.adset",
     name: "Ad Set",
     ixis: 400,
     usd: 4,
@@ -43,7 +43,7 @@ export const PRICING_CATALOG: PricingSKU[] = [
     type: "per-job",
   },
   {
-    id: "contentbot-creator-monthly",
+    id: "contentbot.creator.monthly",
     name: "Creator Seat (Monthly)",
     ixis: 20000,
     usd: 200,
@@ -51,7 +51,7 @@ export const PRICING_CATALOG: PricingSKU[] = [
     type: "monthly-seat",
   },
   {
-    id: "template-skin",
+    id: "apixis.file.unit",
     name: "Template/Skin",
     ixis: 1000,
     usd: 10,
