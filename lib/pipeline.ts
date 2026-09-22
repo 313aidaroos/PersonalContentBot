@@ -1,7 +1,7 @@
 import { insertJob, patchJob } from "./db";
 import { generateScript } from "./script";
 import { renderJobMp4 } from "./render";
-import { reserveIxis, captureReservation, releaseReservation } from "./wallet";
+import { redeem, buyIxisUrl } from "./apixis-wallet";
 import type { Job, Orientation, Storyboard } from "./types";
 
 function storyboardFrom(job: Job): Storyboard {
@@ -71,58 +71,56 @@ export async function queueAndRunWithPayment(input: {
   idea: string;
   niche?: string;
   orientation?: Orientation;
-  userToken: string;
+  ownerEmail: string;
 }): Promise<Job> {
   const idea = input.idea.trim();
   if (idea.length < 3) throw new Error("Idea is too short");
   if (idea.length > 280) throw new Error("Idea is too long");
 
-  // Reserve 800 Ixis for contentbot.clip
+  // Unique idempotency key per attempt (includes timestamp)
   const idempotencyKey = `contentbot-job-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-  let reservation;
-  try {
-    reservation = await reserveIxis("contentbot.clip", idempotencyKey, input.userToken);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    throw new Error(`Payment failed: ${message}`);
-  }
 
-  let job = await insertJob({
-    idea,
-    niche: input.niche?.trim() || null,
-    orientation: input.orientation === "horizontal" ? "horizontal" : "vertical",
-    duration_sec: 60,
+  const result = await redeem({
+    ownerEmail: input.ownerEmail,
+    productKey: "contentbot.clip",
+    idempotencyKey,
+    provision: async () => {
+      let job = await insertJob({
+        idea,
+        niche: input.niche?.trim() || null,
+        orientation: input.orientation === "horizontal" ? "horizontal" : "vertical",
+        duration_sec: 60,
+      });
+
+      try {
+        job = await patchJob(job.id, { status: "scripting" });
+        const script = await generateScript(job.idea, job.niche, job.orientation);
+        job = await patchJob(job.id, { status: "rendering", script });
+
+        const storyboard = storyboardFrom({ ...job, script });
+        job = await patchJob(job.id, { storyboard });
+        const render = await renderJobMp4({ ...job, script, storyboard });
+        job = await patchJob(job.id, {
+          status: "ready",
+          storyboard,
+          render,
+          error: null,
+        });
+        return job;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        await patchJob(job.id, { status: "failed", error: message });
+        throw err;
+      }
+    },
   });
 
-  try {
-    job = await patchJob(job.id, { status: "scripting" });
-    const script = await generateScript(job.idea, job.niche, job.orientation);
-    job = await patchJob(job.id, { status: "rendering", script });
-
-    const storyboard = storyboardFrom({ ...job, script });
-    job = await patchJob(job.id, { storyboard });
-    const render = await renderJobMp4({ ...job, script, storyboard });
-    job = await patchJob(job.id, {
-      status: "ready",
-      storyboard,
-      render,
-      error: null,
-    });
-
-    // Success: capture the payment
-    await captureReservation(reservation.reservationId);
-    return job;
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    await patchJob(job.id, { status: "failed", error: message });
-
-    // Failure: release the reservation
-    try {
-      await releaseReservation(reservation.reservationId);
-    } catch (releaseErr) {
-      console.error("Failed to release reservation:", releaseErr);
-    }
-
-    throw err;
+  if (!result.ok) {
+    const buyUrl = buyIxisUrl("contentbot", "https://personalcontentbot.vercel.app");
+    throw new Error(
+      `Not enough Ixis. You need ${result.needed} Ixis ($${(result.needed / 100).toFixed(2)}). Buy Ixis at ${buyUrl}`
+    );
   }
+
+  return result.result;
 }
