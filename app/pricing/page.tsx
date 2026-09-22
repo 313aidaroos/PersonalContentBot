@@ -34,9 +34,11 @@ export default function PricingPage() {
             </div>
             <button
               style={{ marginTop: "12px", width: "100%" }}
-              onClick={() => alert("Wallet connecting… (redemption API pending)")}
+              onClick={() => {
+                window.location.href = `https://apixis-wallet.vercel.app/buy?product=contentbot&return_url=${encodeURIComponent(window.location.href)}`;
+              }}
             >
-              Redeem · {formatIxis(sku.ixis)}
+              Buy Ixis · {formatIxis(sku.ixis)}
             </button>
           </div>
         ))}
