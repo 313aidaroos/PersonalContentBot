@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { listJobs } from "@/lib/db";
-import { queueAndRun } from "@/lib/pipeline";
+import { queueAndRunWithPayment } from "@/lib/pipeline";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -23,16 +23,30 @@ export async function POST(req: Request) {
       idea?: string;
       niche?: string;
       orientation?: "vertical" | "horizontal";
+      userToken?: string;
     };
-    const job = await queueAndRun({
+    
+    const userToken = req.headers.get("authorization")?.replace("Bearer ", "") || body.userToken;
+    if (!userToken) {
+      return NextResponse.json(
+        { error: "Authentication required. Please log in." },
+        { status: 401 }
+      );
+    }
+
+    const job = await queueAndRunWithPayment({
       idea: body.idea || "",
       niche: body.niche,
       orientation: body.orientation,
+      userToken,
     });
     return NextResponse.json({ job }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    const status = message.includes("too short") || message.includes("too long") ? 400 : 500;
+    let status = 500;
+    if (message.includes("too short") || message.includes("too long")) status = 400;
+    if (message.includes("Insufficient Ixis")) status = 402;
+    if (message.includes("Authentication required")) status = 401;
     return NextResponse.json({ error: message }, { status });
   }
 }
