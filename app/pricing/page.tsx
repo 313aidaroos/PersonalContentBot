@@ -1,6 +1,7 @@
 "use client";
 
 import { PRICING_CATALOG, formatIxis, formatUsd } from "@/lib/pricing";
+import { ApixisWalletChip } from "@/components/ApixisWalletChip";
 
 export default function PricingPage() {
   const perJobItems = PRICING_CATALOG.filter((s) => s.type === "per-job");
@@ -12,6 +13,7 @@ export default function PricingPage() {
       <header className="top">
         <div>
           <h1>Pricing</h1>
+          <p>Your Apixis Wallet: <ApixisWalletChip /></p>
           <p>Pay with Ixis. 100 Ixis = $1. Paid Ixis never expires.</p>
         </div>
       </header>
