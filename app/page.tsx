@@ -24,14 +24,27 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    // Check if user is authenticated via cookie
-    const hasCookie = document.cookie.includes("auth_email");
-    if (!hasCookie) {
-      router.push("/auth");
-      return;
+    // Check auth via Supabase session
+    async function checkAuth() {
+      try {
+        const res = await fetch("/api/auth/session");
+        const data = await res.json();
+        
+        if (!data.user) {
+          // Redirect to auth with current path as next
+          const currentPath = window.location.pathname + window.location.search;
+          router.push(`/auth?next=${encodeURIComponent(currentPath)}`);
+          return;
+        }
+        
+        setAuthed(true);
+        refresh().catch((e) => setError(e.message));
+      } catch (err) {
+        router.push("/auth");
+      }
     }
-    setAuthed(true);
-    refresh().catch((e) => setError(e.message));
+    
+    checkAuth();
   }, [router]);
 
   async function onSubmit(e: FormEvent) {
@@ -82,8 +95,8 @@ export default function HomePage() {
             Pricing
           </button>
           <button 
-            onClick={() => { 
-              document.cookie = "auth_email=; max-age=0";
+            onClick={async () => { 
+              await fetch("/api/auth/session", { method: "DELETE" });
               router.push("/auth");
             }}
             style={{ padding: "8px 16px" }}
