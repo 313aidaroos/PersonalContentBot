@@ -66,19 +66,22 @@ export async function queueAndRun(input: {
 
 /**
  * Queue and run a video job with Ixis payment (reserve → render → capture/release)
+ * 
+ * attemptId: client-generated UUID per button click (retry of same click reuses it)
  */
 export async function queueAndRunWithPayment(input: {
   idea: string;
   niche?: string;
   orientation?: Orientation;
   ownerEmail: string;
+  attemptId: string;
 }): Promise<Job> {
   const idea = input.idea.trim();
   if (idea.length < 3) throw new Error("Idea is too short");
   if (idea.length > 280) throw new Error("Idea is too long");
 
-  // Unique idempotency key per attempt (includes timestamp)
-  const idempotencyKey = `contentbot-job-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  // Idempotency key: stable per attempt, <80 chars, no email
+  const idempotencyKey = `contentbot-${input.attemptId}`;
 
   const result = await redeem({
     ownerEmail: input.ownerEmail,
@@ -112,6 +115,17 @@ export async function queueAndRunWithPayment(input: {
         await patchJob(job.id, { status: "failed", error: message });
         throw err;
       }
+    },
+    unprovision: async (reservation, job) => {
+      // Capture failed after job was created: delete the job row
+      // (In a real system with user-visible history, mark as "unpaid" instead)
+      await fetch(`${process.env.SUPABASE_URL}/rest/v1/pcb_jobs?id=eq.${job.id}`, {
+        method: "DELETE",
+        headers: {
+          apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`,
+        },
+      });
     },
   });
 

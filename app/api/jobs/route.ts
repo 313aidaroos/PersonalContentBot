@@ -67,13 +67,22 @@ export async function POST(req: NextRequest) {
       idea?: string;
       niche?: string;
       orientation?: "vertical" | "horizontal";
+      attemptId?: string;
     };
+
+    if (!body.attemptId || body.attemptId.length < 10 || body.attemptId.length > 50) {
+      return NextResponse.json(
+        { error: "attemptId required (10-50 chars, stable per button click)" },
+        { status: 400 }
+      );
+    }
 
     const job = await queueAndRunWithPayment({
       idea: body.idea || "",
       niche: body.niche,
       orientation: body.orientation,
       ownerEmail: user.email,
+      attemptId: body.attemptId,
     });
     return NextResponse.json({ job }, { status: 201 });
   } catch (err) {
