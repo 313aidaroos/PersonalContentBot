@@ -39,13 +39,22 @@ export default function HomePage() {
     setBusy(true);
     setError(null);
     try {
+      // Generate stable attemptId for this attempt
+      const attemptId = `${Date.now()}-${Math.random().toString(36).slice(2, 15)}`;
+      
       const res = await fetch("/api/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idea, niche, orientation }),
+        body: JSON.stringify({ idea, niche, orientation, attemptId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Queue failed");
+      if (!res.ok) {
+        if (res.status === 402) {
+          // 402 = insufficient Ixis, show buy link
+          throw new Error(data.error || "Not enough Ixis");
+        }
+        throw new Error(data.error || "Queue failed");
+      }
       setIdea("");
       await refresh();
       window.location.href = `/jobs/${data.job.id}`;
