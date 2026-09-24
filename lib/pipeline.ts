@@ -26,44 +26,6 @@ function storyboardFrom(job: Job): Storyboard {
   };
 }
 
-export async function queueAndRun(input: {
-  idea: string;
-  niche?: string;
-  orientation?: Orientation;
-}): Promise<Job> {
-  const idea = input.idea.trim();
-  if (idea.length < 3) throw new Error("Idea is too short");
-  if (idea.length > 280) throw new Error("Idea is too long");
-
-  let job = await insertJob({
-    idea,
-    niche: input.niche?.trim() || null,
-    orientation: input.orientation === "horizontal" ? "horizontal" : "vertical",
-    duration_sec: 60,
-  });
-
-  try {
-    job = await patchJob(job.id, { status: "scripting" });
-    const script = await generateScript(job.idea, job.niche, job.orientation);
-    job = await patchJob(job.id, { status: "rendering", script });
-
-    const storyboard = storyboardFrom({ ...job, script });
-    job = await patchJob(job.id, { storyboard });
-    const render = await renderJobMp4({ ...job, script, storyboard });
-    job = await patchJob(job.id, {
-      status: "ready",
-      storyboard,
-      render,
-      error: null,
-    });
-    return job;
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    await patchJob(job.id, { status: "failed", error: message });
-    throw err;
-  }
-}
-
 /**
  * Queue and run a video job with Ixis payment (reserve → render → capture/release)
  * 
@@ -89,6 +51,7 @@ export async function queueAndRunWithPayment(input: {
     idempotencyKey,
     provision: async () => {
       let job = await insertJob({
+        owner_email: input.ownerEmail.toLowerCase(),
         idea,
         niche: input.niche?.trim() || null,
         orientation: input.orientation === "horizontal" ? "horizontal" : "vertical",

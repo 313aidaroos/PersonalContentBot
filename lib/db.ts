@@ -31,18 +31,21 @@ async function parse<T>(res: Response): Promise<T> {
   return text ? (JSON.parse(text) as T) : (null as T);
 }
 
-export async function listJobs(): Promise<Job[]> {
+/** A member only ever sees their own jobs (owner_email = verified session email). */
+export async function listJobs(ownerEmail: string): Promise<Job[]> {
+  const owner = encodeURIComponent(ownerEmail.toLowerCase());
   return parse<Job[]>(
-    await fetch(`${restUrl("?select=*&order=created_at.desc&limit=40")}`, {
+    await fetch(`${restUrl(`?owner_email=eq.${owner}&select=*&order=created_at.desc&limit=40`)}`, {
       headers: restHeaders(),
       cache: "no-store",
     }),
   );
 }
 
-export async function getJob(id: string): Promise<Job | null> {
+export async function getJob(id: string, ownerEmail: string): Promise<Job | null> {
+  const owner = encodeURIComponent(ownerEmail.toLowerCase());
   const rows = await parse<Job[]>(
-    await fetch(`${restUrl(`?id=eq.${encodeURIComponent(id)}&select=*&limit=1`)}`, {
+    await fetch(`${restUrl(`?id=eq.${encodeURIComponent(id)}&owner_email=eq.${owner}&select=*&limit=1`)}`, {
       headers: restHeaders(),
       cache: "no-store",
     }),
@@ -51,6 +54,7 @@ export async function getJob(id: string): Promise<Job | null> {
 }
 
 export async function insertJob(row: {
+  owner_email: string;
   idea: string;
   niche: string | null;
   orientation: "vertical" | "horizontal";
