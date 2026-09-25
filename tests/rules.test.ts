@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { isAdmin } from "../lib/rules.ts";
+import { isAdmin } from "../lib/rules";
 
 test("isAdmin: awad@apixis.dev is the owner, case-insensitive", () => {
   assert.equal(isAdmin("awad@apixis.dev"), true);

@@ -9,8 +9,11 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 export async function GET() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.email) return NextResponse.json({ error: "Authentication required. Please log in." }, { status: 401 });
   try {
-    const jobs = await listJobs();
+    const jobs = await listJobs(user.email);
     return NextResponse.json({ jobs });
   } catch (err) {
     return NextResponse.json(
