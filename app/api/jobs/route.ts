@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { listJobs } from "@/lib/db";
 import { queueAndRunWithPayment } from "@/lib/pipeline";
 import { createClient } from "@/lib/supabase/server";
+import { apixisOwner } from "@/lib/apixis-login";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
       idea: body.idea || "",
       niche: body.niche,
       orientation: body.orientation,
-      ownerEmail: user.email,
+      ownerEmail: (await apixisOwner(user.email)) ?? user.email,
       attemptId: body.attemptId,
     });
     return NextResponse.json({ job }, { status: 201 });
