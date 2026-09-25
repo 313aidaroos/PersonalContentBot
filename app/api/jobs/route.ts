@@ -1,3 +1,4 @@
+// Change note (Claude, Sep 2026): Sign-in required; lists only your jobs. See docs/LAUNCH_NOTES.md.
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { listJobs } from "@/lib/db";

@@ -24,8 +24,11 @@ App `contentbot`. Sells `contentbot.*` (clip, text, image, adset, creator seat).
 
 ## What changed, file by file
 
+Each changed backend code file also starts with a one-line `Change note (Claude, Sep 2026)` comment saying the same thing.
+
 | File | Change |
 |---|---|
+| `.gitignore` | Part of: Launch notes + complete .env.example (backend/plumbing only). |
 | `app/api/cixy/route.ts` | Rate limited. |
 | `app/api/jobs/[id]/route.ts` | Sign-in required; reads only your job. |
 | `app/api/jobs/route.ts` | Sign-in required; lists only your jobs. |
