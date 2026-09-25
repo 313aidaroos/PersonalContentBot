@@ -3,6 +3,18 @@ import type { NextRequest } from "next/server";
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
+// Public widget that spends Anthropic credits: cap input and rate per IP (per instance —
+// a speed bump against scripted abuse, not a global quota).
+const MAX_CHARS = 2000;
+const hits = new Map<string, number[]>();
+function rateLimited(ip: string, max = 20, windowMs = 10 * 60 * 1000, now = Date.now()) {
+  const recent = (hits.get(ip) ?? []).filter((t) => now - t < windowMs);
+  recent.push(now);
+  hits.set(ip, recent);
+  if (hits.size > 5000) hits.clear();
+  return recent.length > max;
+}
+
 const CIXY_SYSTEM_PROMPT = `You are Cixy, an AI assistant for PersonalContentBot. You are:
 
 ## Core Identity
@@ -44,12 +56,26 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  try {
-    const { messages } = (await req.json()) as {
-      messages?: Array<{ role: "user" | "assistant"; content: string }>;
-    };
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (rateLimited(ip)) {
+    return NextResponse.json({ error: "Too many messages. Please wait a few minutes." }, { status: 429 });
+  }
 
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+  try {
+    const body = (await req.json()) as { messages?: unknown };
+    // Only well-formed turns, last 10, each capped; the conversation must end with the user.
+    const messages = (Array.isArray(body.messages) ? body.messages : [])
+      .filter(
+        (m): m is { role: "user" | "assistant"; content: string } =>
+          !!m &&
+          typeof m === "object" &&
+          ((m as { role?: unknown }).role === "user" || (m as { role?: unknown }).role === "assistant") &&
+          typeof (m as { content?: unknown }).content === "string",
+      )
+      .slice(-10)
+      .map((m) => ({ role: m.role, content: m.content.slice(0, MAX_CHARS) }));
+
+    if (messages.length === 0 || messages[messages.length - 1].role !== "user") {
       return NextResponse.json({ error: "No messages provided" }, { status: 400 });
     }
 
