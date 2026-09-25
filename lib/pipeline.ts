@@ -1,3 +1,4 @@
+// Change note (Claude, Sep 2026): Removed `queueAndRun` (unpaid path that skipped the Wallet). See docs/LAUNCH_NOTES.md.
 import { insertJob, patchJob } from "./db";
 import { generateScript } from "./script";
 import { renderJobMp4 } from "./render";

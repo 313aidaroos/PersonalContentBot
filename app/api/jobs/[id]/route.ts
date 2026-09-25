@@ -1,3 +1,4 @@
+// Change note (Claude, Sep 2026): Sign-in required; reads only your job. See docs/LAUNCH_NOTES.md.
 import { NextResponse } from "next/server";
 import { getJob } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";

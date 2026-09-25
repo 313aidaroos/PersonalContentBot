@@ -1,3 +1,4 @@
+// Change note (Claude, Sep 2026): Rate limited. See docs/LAUNCH_NOTES.md.
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
