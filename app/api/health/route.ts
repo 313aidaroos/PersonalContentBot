@@ -1,3 +1,4 @@
+// Change note (Claude, Sep 2026): Retired claude-3-5-sonnet replaced; model is ANTHROPIC_MODEL or claude-sonnet-5. See docs/LAUNCH_NOTES.md.
 import { NextResponse } from "next/server";
 import { pingTable } from "@/lib/db";
 
@@ -19,7 +20,7 @@ async function checkCixy(): Promise<boolean> {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-3-5-sonnet-20241022",
+        model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5",
         max_tokens: 10,
         messages: [{ role: "user", content: "ping" }],
       }),

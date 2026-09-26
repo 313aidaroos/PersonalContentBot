@@ -1,4 +1,4 @@
-// Change note (Claude, Sep 2026): Rate limited. See docs/LAUNCH_NOTES.md.
+// Change note (Claude, Sep 2026): Rate limited. Retired model replaced (ANTHROPIC_MODEL or claude-sonnet-5). See docs/LAUNCH_NOTES.md.
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-3-5-sonnet-20241022",
+        model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5",
         max_tokens: 1024,
         system: CIXY_SYSTEM_PROMPT,
         messages,
