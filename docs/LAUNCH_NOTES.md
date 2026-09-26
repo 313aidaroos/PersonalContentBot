@@ -29,11 +29,12 @@ Each changed backend code file also starts with a one-line `Change note (Claude,
 | File | Change |
 |---|---|
 | `.gitignore` | Part of: Launch notes + complete .env.example (backend/plumbing only). |
-| `app/api/cixy/route.ts` | Rate limited. |
+| `app/api/cixy/route.ts` | Rate limited; retired model replaced (ANTHROPIC_MODEL or claude-sonnet-5). |
+| `app/api/health/route.ts` | Part of: Replace the retired Claude model so Cixy doesn't fail. |
 | `app/api/jobs/[id]/route.ts` | Sign-in required; reads only your job. |
 | `app/api/jobs/route.ts` | Sign-in required; lists only your jobs. |
 | `docs/LAUNCH_NOTES.md` | This file. |
-| `env.example` | Added 7 key(s) the code reads that were missing: `WALLET_API_KEY`, `NEXT_PUBLIC_APP_URL`, `PCB_SUPPORT_TABLE`, `XAI_VIDEO_TIMEOUT_MS`, `SUPABASE_ACCESS_TOKEN`, `VERCEL_TOKEN`, `APIXIS_WALLET_API_KEY`. |
+| `env.example` | Added 8 key(s) the code reads that were missing: `WALLET_API_KEY`, `NEXT_PUBLIC_APP_URL`, `PCB_SUPPORT_TABLE`, `XAI_VIDEO_TIMEOUT_MS`, `ANTHROPIC_MODEL`, `SUPABASE_ACCESS_TOKEN`, `VERCEL_TOKEN`, `APIXIS_WALLET_API_KEY`. |
 | `lib/db.ts` | Every job read/write is scoped to `owner_email`. |
 | `lib/pipeline.ts` | Removed `queueAndRun` (unpaid path that skipped the Wallet). |
 | `supabase/pcb_jobs_owner.sql` | New. Adds `owner_email` + index (applied). |
