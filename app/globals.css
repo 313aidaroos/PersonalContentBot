@@ -21,6 +21,18 @@ body {
 
 a { color: inherit; }
 
+/* "A Apixis Company" family badge (top of every page) */
+.apixis-badge {
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+}
+.apixis-badge a { text-decoration: none; }
+.apixis-badge a:hover { color: var(--ink); text-decoration: underline; }
+
 .wrap {
   max-width: 1120px;
   margin: 0 auto;
