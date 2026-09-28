@@ -15,3 +15,7 @@ Entry format:
 ## 2026-09-28 — JunoAI
 - Changed: created this file
 - Why: owner's standing rule — every AI that touches this repo must log its changes here
+
+## 2026-09-28 — JunoAI
+- Changed: Added .github/workflows/ci.yml — thin caller of the shared reusable workflow 313aidaroos/github-actions/.github/workflows/node-ci.yml@main (checkout → Node 20 → npm ci → lint/typecheck/test/build).
+- Why: Standardize CI across repos via the shared reusable workflow.
