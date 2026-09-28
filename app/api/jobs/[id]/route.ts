@@ -1,5 +1,7 @@
+// Change note (Claude, Sep 2026): Sign-in required; reads only your job. See docs/LAUNCH_NOTES.md.
 import { NextResponse } from "next/server";
 import { getJob } from "@/lib/db";
+import { toPublicJob } from "@/lib/public-job";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +15,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     // Filtered by owner: another member's job id reads as not found.
     const job = await getJob(id, user.email);
     if (!job) return NextResponse.json({ error: "Job not found" }, { status: 404 });
-    return NextResponse.json({ job });
+    return NextResponse.json({ job: toPublicJob(job) });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : String(err) },

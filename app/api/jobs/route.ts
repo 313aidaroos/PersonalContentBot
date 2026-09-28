@@ -1,7 +1,9 @@
+// Change note (Claude, Sep 2026): Sign-in required; lists only your jobs. See docs/LAUNCH_NOTES.md.
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { listJobs } from "@/lib/db";
 import { queueAndRunWithPayment } from "@/lib/pipeline";
+import { toPublicJob } from "@/lib/public-job";
 import { createClient } from "@/lib/supabase/server";
 import { apixisOwner } from "@/lib/apixis-login";
 
@@ -14,7 +16,7 @@ export async function GET() {
   if (!user?.email) return NextResponse.json({ error: "Authentication required. Please log in." }, { status: 401 });
   try {
     const jobs = await listJobs(user.email);
-    return NextResponse.json({ jobs });
+    return NextResponse.json({ jobs: jobs.map(toPublicJob) });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : String(err) },
@@ -58,7 +60,7 @@ export async function POST(req: NextRequest) {
       ownerEmail: (await apixisOwner(user.email)) ?? user.email,
       attemptId: body.attemptId,
     });
-    return NextResponse.json({ job }, { status: 201 });
+    return NextResponse.json({ job: toPublicJob(job) }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     let status = 500;

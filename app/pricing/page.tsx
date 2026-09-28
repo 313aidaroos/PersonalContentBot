@@ -109,7 +109,7 @@ export default function PricingPage() {
       <div style={{ marginTop: "24px", padding: "16px", background: "var(--card)", borderRadius: "12px", border: "1px solid var(--line)" }}>
         <p style={{ margin: "0", fontSize: "13px", color: "var(--muted)" }}>
           <strong style={{ color: "var(--ink)" }}>How to buy Ixis:</strong> Visit{" "}
-          <a href="https://apixiswallet.vercel.app" style={{ color: "var(--accent)" }}>
+          <a href="https://apixis-wallet.vercel.app" style={{ color: "var(--accent)" }}>
             Apixis Wallet
           </a>{" "}
           to purchase Ixis. 100 Ixis = $1. Paid Ixis never expires.

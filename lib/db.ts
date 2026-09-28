@@ -1,3 +1,4 @@
+// Change note (Claude, Sep 2026): Every job read/write is scoped to `owner_email`. See docs/LAUNCH_NOTES.md.
 import type { Job, JobStatus } from "./types";
 
 function required(name: string): string {

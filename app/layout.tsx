@@ -12,7 +12,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet" />
       </head>
-      <body>{children}</body>
+      <body>
+        <div className="apixis-badge">
+          <a href="https://www.apixis.dev" target="_blank" rel="noopener noreferrer">
+            A Apixis Company
+          </a>
+        </div>
+        {children}
+      </body>
     </html>
   );
 }

@@ -66,8 +66,8 @@ export default function CixyChatWidget() {
           <div className="cixy-messages">
             {messages.length === 0 && (
               <div className="cixy-welcome">
-                <p>As-salamu alaykum! 👋</p>
-                <p>I'm Cixy. Ask me anything about creating one-minute videos.</p>
+                <p>Hi there, welcome! 👋</p>
+                <p>I'm Cixy. Ask me anything about creating one-minute videos: hooks, scripts, storyboards, and platform formats.</p>
               </div>
             )}
             {messages.map((msg, i) => (

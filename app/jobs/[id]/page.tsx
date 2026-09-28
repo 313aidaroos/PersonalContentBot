@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { Job } from "@/lib/types";
+import type { PublicJob as Job } from "@/lib/public-job";
 
 export default function JobPage({ params }: { params: Promise<{ id: string }> }) {
   const [id, setId] = useState<string | null>(null);
@@ -111,9 +111,10 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
             <p className="meta">
               engine: {job.render.engine}
               {job.render.clips?.some((c) => c.source === "xai") ? " · Grok hero clip 0–15s" : ""}
-              {job.render.fallbackReason ? ` · fallback: ${job.render.fallbackReason}` : ""}
+              {job.render.heroFallback ? " · hero clip unavailable, used caption slides instead" : ""}
             </p>
           ) : null}
+          {job.render?.billing?.charged === false ? <p className="meta">{job.render.billing.note}</p> : null}
           {job.render ? <p className="meta">{job.render.note}</p> : null}
         </div>
 
