@@ -104,14 +104,38 @@ function isBeat(x: unknown): x is LlmBeat {
   );
 }
 
-export async function generateScript(
+/** Used when ANTHROPIC_MODEL is unset. */
+export const DEFAULT_SCRIPT_MODEL = "claude-sonnet-4-5";
+
+export function scriptModel(): string {
+  return process.env.ANTHROPIC_MODEL?.trim() || DEFAULT_SCRIPT_MODEL;
+}
+
+export type ScriptOutcome = {
+  script: VideoScript;
+  /** "anthropic" = AI-written script. "template" = built-in fallback (no charge, see lib/pipeline.ts). */
+  source: "anthropic" | "template";
+  /** Server-side only (logs). Never shown to users. */
+  fallbackReason?: string;
+};
+
+/**
+ * Write the script. Falls back to the built-in template if Anthropic is not configured or the
+ * call fails in any way; `source` says which one you got so the caller can bill accordingly.
+ */
+export async function generateScriptWithSource(
   idea: string,
   niche: string | null,
   orientation: Orientation,
-): Promise<VideoScript> {
+): Promise<ScriptOutcome> {
   const fallback = buildTemplateScript(idea, niche, orientation);
+  const template = (fallbackReason: string): ScriptOutcome => ({
+    script: { ...fallback, source: "template" },
+    source: "template",
+    fallbackReason,
+  });
   const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) return fallback;
+  if (!key) return template("ANTHROPIC_API_KEY not set");
 
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -122,7 +146,7 @@ export async function generateScript(
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5",
+        model: scriptModel(),
         max_tokens: 1600,
         messages: [
           {
@@ -139,15 +163,15 @@ Beats should cover 2-52 seconds without gaps.`,
         ],
       }),
     });
-    if (!res.ok) return fallback;
+    if (!res.ok) return template(`anthropic ${res.status}`);
     const data = (await res.json()) as { content?: { type: string; text?: string }[] };
     const text = data.content?.find((c) => c.type === "text")?.text || "";
     const jsonStart = text.indexOf("{");
     const jsonEnd = text.lastIndexOf("}");
-    if (jsonStart < 0 || jsonEnd < 0) return fallback;
+    if (jsonStart < 0 || jsonEnd < 0) return template("anthropic reply had no JSON");
     const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1)) as Record<string, unknown>;
     if (!isBeat(parsed.hook) || !isBeat(parsed.cta) || !Array.isArray(parsed.beats) || !parsed.beats.every(isBeat)) {
-      return fallback;
+      return template("anthropic reply had the wrong shape");
     }
     const base: Omit<VideoScript, "captionsVtt"> = {
       title: typeof parsed.title === "string" ? parsed.title : fallback.title,
@@ -158,8 +182,17 @@ Beats should cover 2-52 seconds without gaps.`,
         ? parsed.hashtags.filter((h): h is string => typeof h === "string").slice(0, 6)
         : fallback.hashtags,
     };
-    return { ...base, captionsVtt: toVtt(base) };
-  } catch {
-    return fallback;
+    return { script: { ...base, captionsVtt: toVtt(base), source: "anthropic" }, source: "anthropic" };
+  } catch (err) {
+    return template(err instanceof Error ? err.message : String(err));
   }
+}
+
+/** Script only (template fallback included). Prefer generateScriptWithSource when billing depends on it. */
+export async function generateScript(
+  idea: string,
+  niche: string | null,
+  orientation: Orientation,
+): Promise<VideoScript> {
+  return (await generateScriptWithSource(idea, niche, orientation)).script;
 }

@@ -16,6 +16,8 @@ export type VideoScript = {
   cta: Beat;
   captionsVtt: string;
   hashtags: string[];
+  /** Who wrote it: the AI writer, or the built-in template fallback (fallback clips are not charged). */
+  source?: "anthropic" | "template";
 };
 
 export type Storyboard = {
@@ -48,7 +50,10 @@ export type RenderResult = {
   durationSec?: number;
   contentType?: "video/mp4";
   clips?: RenderClip[];
+  /** Raw hero-clip error. Server-side only: stripped from API responses (see lib/public-job.ts). */
   fallbackReason?: string;
+  /** Set when the clip was delivered without charging (hold released), e.g. template-script fallback. */
+  billing?: { charged: false; reason: "script_fallback"; note: string };
 };
 
 export type Job = {
