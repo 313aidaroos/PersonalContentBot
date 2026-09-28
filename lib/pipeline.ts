@@ -1,9 +1,26 @@
 // Change note (Claude, Sep 2026): Removed `queueAndRun` (unpaid path that skipped the Wallet). See docs/LAUNCH_NOTES.md.
 import { insertJob, patchJob } from "./db";
-import { generateScript } from "./script";
+import { generateScriptWithSource } from "./script";
 import { renderJobMp4 } from "./render";
 import { redeem, buyIxisUrl } from "./apixis-wallet";
 import type { Job, Orientation, Storyboard } from "./types";
+
+/**
+ * Thrown from inside provision() when the clip was made from the built-in template script
+ * (Anthropic unavailable). redeem() treats any provision error as "release the hold", so the
+ * customer is NOT charged; queueAndRunWithPayment catches it and still returns the finished clip.
+ */
+class DeliveredWithoutCharge extends Error {
+  job: Job;
+  constructor(job: Job) {
+    super("template-script fallback: hold released, clip delivered free");
+    this.name = "DeliveredWithoutCharge";
+    this.job = job;
+  }
+}
+
+export const FALLBACK_BILLING_NOTE =
+  "Our AI script writer was unavailable, so this clip uses the built-in template script. You were not charged.";
 
 function storyboardFrom(job: Job): Storyboard {
   const script = job.script;
@@ -29,7 +46,10 @@ function storyboardFrom(job: Job): Storyboard {
 
 /**
  * Queue and run a video job with Ixis payment (reserve → render → capture/release)
- * 
+ *
+ * If the AI script writer is unavailable and the built-in template is used, the hold is
+ * RELEASED (not captured) and the clip is still delivered, marked render.billing.charged=false.
+ *
  * attemptId: client-generated UUID per button click (retry of same click reuses it)
  */
 export async function queueAndRunWithPayment(input: {
@@ -59,26 +79,41 @@ export async function queueAndRunWithPayment(input: {
         duration_sec: 60,
       });
 
+      let usedTemplate = false;
       try {
         job = await patchJob(job.id, { status: "scripting" });
-        const script = await generateScript(job.idea, job.niche, job.orientation);
+        const outcome = await generateScriptWithSource(job.idea, job.niche, job.orientation);
+        const script = outcome.script;
+        if (outcome.source === "template") {
+          usedTemplate = true;
+          // Raw reason stays in server logs only.
+          console.warn(`pcb job ${job.id}: script fallback to template (${outcome.fallbackReason ?? "unknown"}); releasing Wallet hold`);
+        }
         job = await patchJob(job.id, { status: "rendering", script });
 
         const storyboard = storyboardFrom({ ...job, script });
         job = await patchJob(job.id, { storyboard });
         const render = await renderJobMp4({ ...job, script, storyboard });
+        if (render.fallbackReason) {
+          console.warn(`pcb job ${job.id}: xAI hero clip skipped (${render.fallbackReason})`);
+        }
         job = await patchJob(job.id, {
           status: "ready",
           storyboard,
-          render,
+          render: usedTemplate
+            ? { ...render, billing: { charged: false, reason: "script_fallback", note: FALLBACK_BILLING_NOTE } }
+            : render,
           error: null,
         });
-        return job;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         await patchJob(job.id, { status: "failed", error: message });
         throw err;
       }
+      // Outside the try above so the finished job is not marked failed. Throwing here makes
+      // redeem() release the hold instead of capturing it (lib/apixis-wallet.ts is unchanged).
+      if (usedTemplate) throw new DeliveredWithoutCharge(job);
+      return job;
     },
     unprovision: async (reservation, job) => {
       // Capture failed after job was created: delete the job row
@@ -91,6 +126,10 @@ export async function queueAndRunWithPayment(input: {
         },
       });
     },
+  }).catch((err: unknown) => {
+    // Template fallback: redeem() already released the hold. Hand back the free clip.
+    if (err instanceof DeliveredWithoutCharge) return { ok: true as const, receiptId: null, result: err.job };
+    throw err;
   });
 
   if (!result.ok) {
