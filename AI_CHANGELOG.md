@@ -31,3 +31,7 @@ Entry format:
 - Separated billing identity (Apixis subject) from local job ownership (verified session email). New SSO jobs remain visible in their owner's history.
 - Added ownership-scoped compatibility reads for jobs previously saved under the trusted Apixis subject, without rewriting customer records or accepting an owner from the browser.
 - Added pipeline/ownership regressions. Database URL now accepts the standard NEXT_PUBLIC_SUPABASE_URL fallback on the server.
+
+## 2026-09-30 — Claude (branch claude/awesome-newton-3tygzi)
+- Changed: `lib/apixis-login.ts` re-copied (`type: "email"`, D16). `lib/apixis-wallet.ts` → SDK v3.1.
+- Why: family backend pass per Awad's 2026-09-30 decisions (ApixisWallet/AGENTS.md §0c D11–D16; live board: ApixisWallet/docs/FAMILY_STATUS.md). One SDK, one login kit, one world kit — copied from canonical, never patched by hand.
