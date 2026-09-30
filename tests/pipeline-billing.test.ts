@@ -69,3 +69,12 @@ describe("fallback billing", () => {
     expect(job.render?.billing).toBeUndefined();
   });
 });
+
+describe("content ownership is separate from Wallet identity", () => {
+  it("stores the session email even when a shared Apixis subject pays", async () => {
+    scriptSource = "anthropic";
+    const { queueAndRunWithPayment } = await import("@/lib/pipeline");
+    const job = await queueAndRunWithPayment({ idea: "three hooks", ownerEmail: "Owner@Example.com", walletOwner: "11111111-1111-4111-8111-111111111111", attemptId: "attempt-identity-001" });
+    expect((rows.get(job.id) as Job & { owner_email: string }).owner_email).toBe("owner@example.com");
+  });
+});

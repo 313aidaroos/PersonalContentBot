@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getJob } from "@/lib/db";
 import { toPublicJob } from "@/lib/public-job";
 import { createClient } from "@/lib/supabase/server";
+import { apixisSubOf } from "@/lib/apixis-login";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   try {
     const { id } = await ctx.params;
     // Filtered by owner: another member's job id reads as not found.
-    const job = await getJob(id, user.email);
+    const job = await getJob(id, user.email, apixisSubOf(user));
     if (!job) return NextResponse.json({ error: "Job not found" }, { status: 404 });
     return NextResponse.json({ job: toPublicJob(job) });
   } catch (err) {

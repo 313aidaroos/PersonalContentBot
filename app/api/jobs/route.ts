@@ -5,7 +5,7 @@ import { listJobs } from "@/lib/db";
 import { queueAndRunWithPayment } from "@/lib/pipeline";
 import { toPublicJob } from "@/lib/public-job";
 import { createClient } from "@/lib/supabase/server";
-import { apixisOwner } from "@/lib/apixis-login";
+import { apixisOwner, apixisSubOf } from "@/lib/apixis-login";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -15,7 +15,7 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user?.email) return NextResponse.json({ error: "Authentication required. Please log in." }, { status: 401 });
   try {
-    const jobs = await listJobs(user.email);
+    const jobs = await listJobs(user.email, apixisSubOf(user));
     return NextResponse.json({ jobs: jobs.map(toPublicJob) });
   } catch (err) {
     return NextResponse.json(
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
-  if (authError || !user || !user.email) {
+  if (authError || !user || !user.email || !user.email_confirmed_at) {
     return NextResponse.json(
       { error: "Authentication required. Please log in." },
       { status: 401 }
@@ -46,18 +46,23 @@ export async function POST(req: NextRequest) {
       attemptId?: string;
     };
 
-    if (!body.attemptId || body.attemptId.length < 10 || body.attemptId.length > 50) {
+    if (!body || typeof body !== "object" || typeof body.attemptId !== "string" || !/^[a-zA-Z0-9-]{10,50}$/.test(body.attemptId)) {
       return NextResponse.json(
         { error: "attemptId required (10-50 chars, stable per button click)" },
         { status: 400 }
       );
     }
 
+    if (typeof body.idea !== "string" || (body.niche !== undefined && typeof body.niche !== "string") || (body.orientation !== undefined && !["vertical", "horizontal"].includes(body.orientation))) {
+      return NextResponse.json({ error: "Invalid video request" }, { status: 400 });
+    }
+
     const job = await queueAndRunWithPayment({
       idea: body.idea || "",
       niche: body.niche,
       orientation: body.orientation,
-      ownerEmail: (await apixisOwner(user.email)) ?? user.email,
+      ownerEmail: user.email,
+      walletOwner: (await apixisOwner(user.email)) ?? user.email,
       attemptId: body.attemptId,
     });
     return NextResponse.json({ job: toPublicJob(job) }, { status: 201 });

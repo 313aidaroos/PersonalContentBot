@@ -57,6 +57,8 @@ export async function queueAndRunWithPayment(input: {
   niche?: string;
   orientation?: Orientation;
   ownerEmail: string;
+  /** Wallet identity is separate from the email used to own local job records. */
+  walletOwner?: string;
   attemptId: string;
 }): Promise<Job> {
   const idea = input.idea.trim();
@@ -67,7 +69,7 @@ export async function queueAndRunWithPayment(input: {
   const idempotencyKey = `contentbot-${input.attemptId}`;
 
   const result = await redeem({
-    ownerEmail: input.ownerEmail,
+    owner: input.walletOwner ?? input.ownerEmail,
     productKey: "contentbot.clip",
     idempotencyKey,
     provision: async () => {
