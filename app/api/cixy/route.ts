@@ -66,11 +66,10 @@ export async function POST(req: NextRequest) {
 
     if (!response.ok) {
       const error = await response.text();
-      console.error("Anthropic API error:", error);
-      return NextResponse.json(
-        { error: "AI service error" },
-        { status: response.status }
-      );
+      console.error("Anthropic API error:", response.status, error.slice(0, 200));
+      // Out of credit, rate limited or down: a calm sentence, never the vendor's error.
+      const fallback = cixyUnavailableReply(response.status);
+      return NextResponse.json({ error: fallback.reply, reply: fallback.reply, code: "cixy_unavailable" }, { status: fallback.status });
     }
 
     const data = (await response.json()) as {
@@ -90,9 +89,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const message = err instanceof Error ? err.message : "Chat failed";
     console.error("Cixy chat error:", message);
-    return NextResponse.json(
-      { error: message },
-      { status: 500 }
-    );
+    const fallback = cixyUnavailableReply(null);
+    return NextResponse.json({ error: fallback.reply, reply: fallback.reply, code: "cixy_unavailable" }, { status: fallback.status });
   }
 }
