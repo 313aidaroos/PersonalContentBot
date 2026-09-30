@@ -1,5 +1,5 @@
 // Change note (Claude, Sep 2026): Removed `queueAndRun` (unpaid path that skipped the Wallet). See docs/LAUNCH_NOTES.md.
-import { insertJob, patchJob } from "./db";
+import { findJobByAttempt, insertJob, patchJob } from "./db";
 import { generateScriptWithSource } from "./script";
 import { renderJobMp4 } from "./render";
 import { redeem, buyIxisUrl } from "./apixis-wallet";
@@ -68,18 +68,27 @@ export async function queueAndRunWithPayment(input: {
   // Idempotency key: stable per attempt, <80 chars, no email
   const idempotencyKey = `contentbot-${input.attemptId}`;
 
+  // Durable retry: the same click (attemptId) after a lost response returns the job that already
+  // exists instead of rendering — and charging — a second time. A job that is still running is
+  // handed back as-is (the client polls GET /api/jobs/:id); a failed one is retried below.
+  const existing = await findJobByAttempt(input.ownerEmail, input.attemptId);
+  if (existing && existing.status !== "failed") return existing;
+
   const result = await redeem({
     owner: input.walletOwner ?? input.ownerEmail,
     productKey: "contentbot.clip",
     idempotencyKey,
-    provision: async () => {
+    provision: async (reservation) => {
       let job = await insertJob({
         owner_email: input.ownerEmail.toLowerCase(),
         idea,
         niche: input.niche?.trim() || null,
         orientation: input.orientation === "horizontal" ? "horizontal" : "vertical",
         duration_sec: 60,
+        attempt_id: input.attemptId,
       });
+      // Remember the hold so a render that dies can be reconciled (released) by the cron.
+      job = await patchJob(job.id, { wallet_reservation_id: reservation.reservationId });
 
       let usedTemplate = false;
       try {
@@ -141,5 +150,13 @@ export async function queueAndRunWithPayment(input: {
     );
   }
 
+  // Charged and delivered: keep the receipt on the job (no-op until PCB_DURABLE_JOBS=true).
+  if (result.receiptId) {
+    try {
+      return await patchJob(result.result.id, { wallet_receipt_id: result.receiptId });
+    } catch (err) {
+      console.warn(`pcb job ${result.result.id}: receipt not recorded (${err instanceof Error ? err.message : String(err)})`);
+    }
+  }
   return result.result;
 }

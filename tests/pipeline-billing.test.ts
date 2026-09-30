@@ -4,6 +4,8 @@ import type { Job } from "@/lib/types";
 // Stub the side effects; keep the real Wallet client so we see capture vs release.
 const rows = new Map<string, Job>();
 jest.mock("@/lib/db", () => ({
+  findJobByAttempt: async () => null,
+  durableJobsEnabled: () => false,
   insertJob: async (row: Partial<Job>) => {
     const job = { id: "job-1", status: "queued", script: null, storyboard: null, render: null, error: null, created_at: "", updated_at: "", ...row } as Job;
     rows.set(job.id, job);

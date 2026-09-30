@@ -5,5 +5,8 @@
       "maxDuration": 300,
       "includeFiles": "bin/ffmpeg"
     }
-  }
+  },
+  "crons": [
+    { "path": "/api/cron/reconcile-jobs", "schedule": "*/10 * * * *" }
+  ]
 }

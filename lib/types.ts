@@ -69,4 +69,8 @@ export type Job = {
   error: string | null;
   created_at: string;
   updated_at: string;
+  /** Durable-job columns (supabase/pcb_jobs_durable.sql). Present only once PCB_DURABLE_JOBS=true. */
+  attempt_id?: string | null;
+  wallet_reservation_id?: string | null;
+  wallet_receipt_id?: string | null;
 };
