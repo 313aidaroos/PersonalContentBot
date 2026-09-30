@@ -78,18 +78,54 @@ export async function getJob(id: string, ownerEmail: string, apixisSub?: string 
   return legacy ? getJobForOwner(id, legacy) : null;
 }
 
+/**
+ * Durable jobs need the columns from supabase/pcb_jobs_durable.sql. Until the owner has run that
+ * SQL, PCB_DURABLE_JOBS stays unset and every durable field is simply not written.
+ */
+export function durableJobsEnabled(): boolean {
+  return (process.env.PCB_DURABLE_JOBS ?? "").trim().toLowerCase() === "true";
+}
+
+/** The job a previous click already created, so a retry never renders (or charges) twice. */
+export async function findJobByAttempt(ownerEmail: string, attemptId: string): Promise<Job | null> {
+  if (!durableJobsEnabled()) return null;
+  const owner = encodeURIComponent(ownerEmail.toLowerCase());
+  const rows = await parse<Job[]>(
+    await fetch(`${restUrl(`?owner_email=eq.${owner}&attempt_id=eq.${encodeURIComponent(attemptId)}&select=*&limit=1`)}`, {
+      headers: restHeaders(),
+      cache: "no-store",
+    }),
+  );
+  return rows[0] ?? null;
+}
+
+/** Jobs that started but never finished: the render died or the function timed out. */
+export async function listStuckJobs(olderThanMinutes: number, limit = 50): Promise<Job[]> {
+  if (!durableJobsEnabled()) return [];
+  const cutoff = new Date(Date.now() - olderThanMinutes * 60_000).toISOString();
+  return parse<Job[]>(
+    await fetch(
+      `${restUrl(`?status=in.(queued,scripting,rendering)&updated_at=lt.${encodeURIComponent(cutoff)}&select=*&order=updated_at.asc&limit=${limit}`)}`,
+      { headers: restHeaders(), cache: "no-store" },
+    ),
+  );
+}
+
 export async function insertJob(row: {
   owner_email: string;
   idea: string;
   niche: string | null;
   orientation: "vertical" | "horizontal";
   duration_sec: number;
+  attempt_id?: string;
 }): Promise<Job> {
+  const { attempt_id, ...base } = row;
+  const body = durableJobsEnabled() && attempt_id ? { ...base, attempt_id } : base;
   const rows = await parse<Job[]>(
     await fetch(restUrl(), {
       method: "POST",
       headers: restHeaders("return=representation"),
-      body: JSON.stringify({ ...row, status: "queued" satisfies JobStatus }),
+      body: JSON.stringify({ ...body, status: "queued" satisfies JobStatus }),
     }),
   );
   if (!rows[0]) throw new Error("insert returned no row");
@@ -98,8 +134,14 @@ export async function insertJob(row: {
 
 export async function patchJob(
   id: string,
-  patch: Partial<Pick<Job, "status" | "script" | "storyboard" | "render" | "error">>,
+  patch: Partial<Pick<Job, "status" | "script" | "storyboard" | "render" | "error" | "wallet_reservation_id" | "wallet_receipt_id">>,
 ): Promise<Job> {
+  if (!durableJobsEnabled()) {
+    // Never send columns the table may not have yet.
+    delete patch.wallet_reservation_id;
+    delete patch.wallet_receipt_id;
+    if (Object.keys(patch).length === 0) return getJobById(id);
+  }
   const rows = await parse<Job[]>(
     await fetch(`${restUrl(`?id=eq.${encodeURIComponent(id)}`)}`, {
       method: "PATCH",
@@ -108,6 +150,14 @@ export async function patchJob(
     }),
   );
   if (!rows[0]) throw new Error("patch returned no row");
+  return rows[0];
+}
+
+async function getJobById(id: string): Promise<Job> {
+  const rows = await parse<Job[]>(
+    await fetch(`${restUrl(`?id=eq.${encodeURIComponent(id)}&select=*&limit=1`)}`, { headers: restHeaders(), cache: "no-store" }),
+  );
+  if (!rows[0]) throw new Error("job not found");
   return rows[0];
 }
 

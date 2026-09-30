@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "setup-db": "node scripts/setup-db.mjs",
-    "postinstall": "node scripts/fetch-ffmpeg.mjs"
+    "postinstall": "node scripts/fetch-ffmpeg.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
   },
   "engines": {
     "node": ">=20.0.0"

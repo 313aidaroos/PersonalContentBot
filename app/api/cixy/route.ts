@@ -1,5 +1,6 @@
 // Change note (Claude, Sep 2026): Rate limited. Retired model replaced (ANTHROPIC_MODEL or claude-sonnet-5). See docs/LAUNCH_NOTES.md.
 import { NextResponse } from "next/server";
+import { cixyUnavailableReply } from "@/lib/apixis-cixy";
 import type { NextRequest } from "next/server";
 // Shared Apixis Cixy character + PersonalContentBot expert role (single source for this repo).
 import { CIXY_SYSTEM_PROMPT } from "@/lib/cixy-persona";

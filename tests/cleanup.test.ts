@@ -65,8 +65,10 @@ describe("script fallback + model", () => {
 });
 
 describe("Cixy persona", () => {
-  it("has no Islamic greeting or religious identity label", () => {
-    expect(CIXY_SYSTEM_PROMPT).not.toMatch(/salaam|salam|Muslim AI|halal|prayer|Ramadan/i);
+  it("uses the shared family core: matches the greeting, never opens with one, no identity label", () => {
+    expect(CIXY_SYSTEM_PROMPT).toMatch(/Match the greeting you are given/);
+    expect(CIXY_SYSTEM_PROMPT).toMatch(/Never open with a religious greeting/);
+    expect(CIXY_SYSTEM_PROMPT).not.toMatch(/Muslim AI|prayer|Ramadan/i);
     expect(CIXY_SYSTEM_PROMPT).toMatch(/PhD-level expert in short-form social video/);
     expect(CIXY_SYSTEM_PROMPT).toMatch(/defer to his direction/);
   });
