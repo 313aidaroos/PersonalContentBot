@@ -23,7 +23,7 @@ function restHeaders(prefer?: string) {
 }
 
 function restUrl(path = "") {
-  return `${required("SUPABASE_URL")}/rest/v1/${table()}${path}`;
+  return `${process.env.SUPABASE_URL || required("NEXT_PUBLIC_SUPABASE_URL")}/rest/v1/${table()}${path}`;
 }
 
 async function parse<T>(res: Response): Promise<T> {
@@ -33,7 +33,7 @@ async function parse<T>(res: Response): Promise<T> {
 }
 
 /** A member only ever sees their own jobs (owner_email = verified session email). */
-export async function listJobs(ownerEmail: string): Promise<Job[]> {
+async function listJobsForOwner(ownerEmail: string): Promise<Job[]> {
   const owner = encodeURIComponent(ownerEmail.toLowerCase());
   return parse<Job[]>(
     await fetch(`${restUrl(`?owner_email=eq.${owner}&select=*&order=created_at.desc&limit=40`)}`, {
@@ -43,7 +43,7 @@ export async function listJobs(ownerEmail: string): Promise<Job[]> {
   );
 }
 
-export async function getJob(id: string, ownerEmail: string): Promise<Job | null> {
+async function getJobForOwner(id: string, ownerEmail: string): Promise<Job | null> {
   const owner = encodeURIComponent(ownerEmail.toLowerCase());
   const rows = await parse<Job[]>(
     await fetch(`${restUrl(`?id=eq.${encodeURIComponent(id)}&owner_email=eq.${owner}&select=*&limit=1`)}`, {
@@ -52,6 +52,30 @@ export async function getJob(id: string, ownerEmail: string): Promise<Job | null
     }),
   );
   return rows[0] ?? null;
+}
+
+// Compatibility for jobs written by the former SSO path. The subject must come only
+// from the verified user's server-managed app_metadata, never the request body.
+function legacyOwner(apixisSub?: string | null): string | null {
+  return apixisSub && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(apixisSub)
+    ? apixisSub.toLowerCase() : null;
+}
+
+export async function listJobs(ownerEmail: string, apixisSub?: string | null): Promise<Job[]> {
+  const legacy = legacyOwner(apixisSub);
+  const groups = await Promise.all([
+    listJobsForOwner(ownerEmail),
+    legacy ? listJobsForOwner(legacy) : Promise.resolve([]),
+  ]);
+  return [...new Map(groups.flat().map(job => [job.id, job])).values()]
+    .sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 40);
+}
+
+export async function getJob(id: string, ownerEmail: string, apixisSub?: string | null): Promise<Job | null> {
+  const job = await getJobForOwner(id, ownerEmail);
+  if (job) return job;
+  const legacy = legacyOwner(apixisSub);
+  return legacy ? getJobForOwner(id, legacy) : null;
 }
 
 export async function insertJob(row: {
