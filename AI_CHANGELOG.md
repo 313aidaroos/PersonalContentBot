@@ -44,3 +44,7 @@ Entry format:
 - Changed: durable jobs — `lib/db.ts` (`findJobByAttempt`, `listStuckJobs`, durable columns behind `PCB_DURABLE_JOBS=true`), `lib/pipeline.ts` (a retried click returns the existing job instead of rendering and charging twice; the Wallet hold and receipt are recorded on the job), `app/api/cron/reconcile-jobs` (every 10 min: renders stuck >15 min → hold released, job failed; captured-but-unfinished flagged for support, never refunded silently), `vercel.json` cron, `supabase/pcb_jobs_durable.sql` (Awad runs it on the hub project, then sets `PCB_DURABLE_JOBS=true` and `CRON_SECRET`).
 - Fixed: `app/api/cixy/route.ts` was missing the `cixyUnavailableReply` import (would have failed the build) — caught because this repo had no `typecheck`/`test` scripts, so the shared CI ran nothing. Added `typecheck` and `test` scripts; tests updated for the shared persona and the durable path (15 pass, tsc clean).
 - Why: Awad's overnight instruction — everything functional and ready for keys; a lost response must never double-charge.
+
+## 2026-10-02 — Claude (Claude Code)
+- Changed: `.env.example` now lists every env var the code reads (missing names appended with a one-line note each; file created).
+- Why: so the owner can add keys in Vercel from one complete list. No code changed.
