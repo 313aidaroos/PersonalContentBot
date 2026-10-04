@@ -102,3 +102,29 @@ Done 2026-10-02 by Content Bot Lead (Grok) on Awad's standing rule (every change
 - **Where:** n/a. The only write is this notes backfill (`NOTES/GROK.md`).
 - **Who:** Content Bot Lead (Grok).
 - **Undo:** n/a, read-only. For this backfill: revert the commit that adds this section.
+
+---
+
+## 2026-10-04 — Claude-review pass, Content Bot Lead (Grok)
+Done 2026-10-04 ~18:45–19:15 CT on Awad's request (relayed by the Developer Bot hub at 18:43 CT): find everything Claude did since `5ae3997`, check it against Awad's locks, fix anything broken, and log it here. Times are America/Chicago (CDT). Oldest first, matching this file.
+
+### 2026-10-04 12:01 CT — Production redeploy on 5ae3997 (no code change)
+- **What:** Vercel production redeploy of the same commit 5ae3997. Not tied to a new commit or PR.
+- **Where:** Vercel deploy dpl_GjYup8hBSRQtj2eAtech8uHmwV5x (READY, creator 313aidaroos).
+- **Who:** 313aidaroos account. Which agent or person triggered it isn't recorded.
+- **Undo:** n/a (same commit as dpl_DN8DAyLzVQPwDy7gJioN3LpzztH5).
+
+### 2026-10-04 18:29 CT — PR #14 Claude full-portfolio review notes (merged 18:31 CT)
+- **What:** Notes only. Added `NOTES/CLAUDE.md` (this repo's part of Claude's 24-repo review: what's live, what's open, owners, drift) and one `AI_CHANGELOG.md` entry. No code, env, DB or deploy changes. Claude's open items: `supabase/pcb_jobs_durable.sql` not applied (keep `PCB_DURABLE_JOBS` unset), check the Vercel plan allows `maxDuration: 300`, `.env.example` and `env.example` both exist, and the SQL header names a wrong hub ref.
+- **Where:** PR #14 (branch `claude/great-fermi-6brq7a`, commit cc6917e at 18:28 CT), squash commit 0b5e1c1. Prod deploy dpl_HEWx8SKKJ5XXYYENNC6vQfAfm5i4 (READY, 18:31 CT).
+- **Who:** Claude (Claude Code). Merged as 313aidaroos with Awad's approval.
+- **Undo:** `git revert 0b5e1c1` (notes only).
+
+### 2026-10-04 ~19:00 CT — Review result + fix PR (branch `grok/claude-review-fixes`)
+- **What (review):** PR #14 is Claude's only change since 5ae3997, and it's notes only. Other branches have nothing new. No `codex/`, `junoai/`, `juno/` or Hermes work since 10-02. On main: `npm ci`, `tsc --noEmit`, `npx jest` (4 suites, 15 tests) and `npm run build` all pass. Prod `/`, `/pricing`, `/auth`, `/api/health` all return 200. No SVG anywhere in the repo (no `.svg` files, inline `<svg>`, `data:image/svg` or SVG imports).
+- **What (fix):** Lock violation found in the shared Cixy core `lib/apixis-cixy.ts`, which Claude added in PR #11 as a copy of `ApixisWallet/sdk/apixis-cixy.ts`. It had "Arab and Muslim culture" / "announce your faith", Salam / As-salamu alaykum replies, Insha'Allah / alhamdulillah, and the religious-ruling "not a scholar" line. Those lines are removed. Cixy keeps warm hospitality, matches the warmth of the greeting (Hi to Hi), and keeps greetings and phrases plain and neutral. "whatever their faith" now reads "whoever they are". `tests/cleanup.test.ts` now asserts that none of the religious terms appear in the Cixy prompt. Nothing else changed (no UI, routes or billing).
+- **CANONICAL COPY:** `ApixisWallet/sdk/apixis-cixy.ts` (and `docs/CIXY.md`) still has these lines. It needs the same fix, or the next kit re-sync will bring them back here. The file header marks this as a local divergence.
+- **Left as is:** The "clean recommendations" list (alcohol, pork, gambling, interest-based lending, …) is kept unchanged for Awad to decide. `AI_CHANGELOG.md` line 40 (historical log) mentions "salaam" and was left untouched.
+- **Where:** `lib/apixis-cixy.ts`, `tests/cleanup.test.ts`, `AI_CHANGELOG.md`, this file. PR from `grok/claude-review-fixes` (squash-merged; see GitHub for the SHA).
+- **Who:** Content Bot Lead (Grok).
+- **Undo:** `git revert <squash SHA of the grok/claude-review-fixes PR>`.
