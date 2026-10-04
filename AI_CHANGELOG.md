@@ -52,3 +52,7 @@ Entry format:
 ## 2026-10-04 — Claude (Claude Code, full-portfolio review)
 - Changed: `NOTES/CLAUDE.md` — this repo's slice of the 24-repo review (what is live, what is open, who owns each item, drift found). No code, env, database or deploy changes.
 - Why: Awad asked for every repo to be read twice with a done / to-do / owner status, and for the notes in each repo to be updated. Notes only; Awad approved the merge on 2026-10-04.
+
+## 2026-10-04 — Grok (Content Bot Lead, Claude-review pass)
+- Changed: `lib/apixis-cixy.ts` — removed religious greeting/phrase/ruling lines from the shared Cixy core (Awad's lock: no religious content outside Halaxis); Cixy keeps warm hospitality and neutral greetings. `tests/cleanup.test.ts` asserts no religious terms in the Cixy prompt. Notes in `NOTES/GROK.md`.
+- Why: lock check of Claude's recent work. The canonical `ApixisWallet/sdk/apixis-cixy.ts` needs the same fix.
