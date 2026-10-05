@@ -80,7 +80,9 @@ function AuthForm() {
             {isPending ? "Sending…" : "Send Sign-In Link"}
           </button>
           <p style={{ margin: "12px 0 0", fontSize: "13px", color: "var(--muted)" }}>
-            No password needed. We'll email you a link to sign in.
+            No password needed. We'll email you a link to sign in to your existing account.
+            New here? Create your account with{" "}
+            <a href={`/auth/apixis/start?next=${encodeURIComponent(next)}`} style={{ color: "inherit", textDecoration: "underline" }}>Sign in with Apixis</a>.
           </p>
         </form>
       ) : (

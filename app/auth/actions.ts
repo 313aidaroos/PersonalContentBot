@@ -17,15 +17,20 @@ export async function magicLink(form: FormData) {
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      shouldCreateUser: true,
+      shouldCreateUser: false, // 2026-10-04 (Grok): existing accounts only; new accounts use Apixis ID
       emailRedirectTo: `${base}/auth/callback?next=${encodeURIComponent(`/set-password?next=${encodeURIComponent(next)}`)}`,
     },
   });
   
-  if (error) return { message: error.message };
+  if (error) {
+    if (/signups? not allowed|otp_disabled|user not found/i.test(`${error.code ?? ""} ${error.message}`)) {
+      return { message: "No account uses this email yet. New here? Use Sign in with Apixis to create your account." };
+    }
+    return { message: error.message };
+  }
   
   return { 
-    message: `Check ${email} — the sign-in link is on its way. First time? You will choose a password after it opens.` 
+    message: `Check ${email} — the sign-in link is on its way.` 
   };
 }
 
