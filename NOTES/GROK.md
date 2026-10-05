@@ -128,3 +128,10 @@ Done 2026-10-04 ~18:45–19:15 CT on Awad's request (relayed by the Developer Bo
 - **Where:** `lib/apixis-cixy.ts`, `tests/cleanup.test.ts`, `AI_CHANGELOG.md`, this file. PR from `grok/claude-review-fixes` (squash-merged; see GitHub for the SHA).
 - **Who:** Content Bot Lead (Grok).
 - **Undo:** `git revert <squash SHA of the grok/claude-review-fixes PR>`.
+
+## 2026-10-04 (CT) — Grok (Developer Bot hub): Cixy persona v2 sync + Ominix link
+- What: lib/apixis-cixy.ts: synced to v2 minus the gambling 'clean recommendations' rule (PR #15 b80a143 had already removed the religious phrasing; it still had alcohol/pork/gambling/interest). Kept the religious-terms test; widened its ban list and only exempts the two v2 guard sentences that say 'religious' to forbid it.
+- Files: lib/apixis-cixy.ts tests/cleanup.test.ts 
+- Why: Awad's lock — no religious content in Cixy on any product except Halaxis; she declines only genuinely harmful, deceptive or illegal content, never on religious grounds (9/30). Kit = ApixisWallet `sdk/apixis-cixy.*` v2 (3a22244, PR #50) with two hub edits pending canonical: the religion-derived "clean recommendations" rule (gambling) is replaced by "decline only harmful, deceptive or illegal, never on religious grounds", and the character line reads "draws on Arab culture". Ominix links point to https://ominix-app.vercel.app (checked 200 on 2026-10-04 ~6:55 PM CT).
+- Who: Grok (Developer Bot hub), branch `grok/cixy-v2-20261004`, one squash-merged PR.
+- Undo: `git revert <squash sha of this PR>` (sha recorded in the PR), then redeploy prod.

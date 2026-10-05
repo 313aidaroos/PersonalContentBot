@@ -65,12 +65,19 @@ describe("script fallback + model", () => {
 });
 
 describe("Cixy persona", () => {
-  it("uses the shared family core: matches the greeting, no religious content (Awad's lock), no identity label", () => {
-    expect(CIXY_SYSTEM_PROMPT).toMatch(/Match the warmth of the greeting you are given/);
-    expect(CIXY_SYSTEM_PROMPT).toMatch(/warm hospitality/);
+  it("uses the shared family core v2: plain hello, no religious content (Awad's lock), no identity label", () => {
+    expect(CIXY_SYSTEM_PROMPT).toMatch(/Greet with a plain, friendly hello/);
+    expect(CIXY_SYSTEM_PROMPT).toMatch(/hospitality, courtesy, patience/);
+    expect(CIXY_SYSTEM_PROMPT).toMatch(/never on religious grounds/);
+    // v2's guard sentences forbid religious content ("Do not use religious greetings…", "never on
+    // religious grounds"), so strip those two policy sentences before banning the word "religious".
+    const withoutGuards = CIXY_SYSTEM_PROMPT
+      .replace(/- Greet with a plain, friendly hello\.[^\n]*\n/, "")
+      .replace(/- Decline only what is genuinely harmful[^\n]*\n/, "");
     expect(CIXY_SYSTEM_PROMPT).not.toMatch(
-      /salaam|salam|insha|alhamdulillah|mashallah|bismillah|halal|prayer|ramadan|muslim|islam|religious|faith|scholar/i,
+      /salaam|salam|insha|alhamdulillah|mashallah|bismillah|halal|haram|prayer|ramadan|hijri|\beid\b|muslim|islam|faith|scholar|riba|alcohol|pork|gambl/i,
     );
+    expect(withoutGuards).not.toMatch(/religious/i);
     expect(CIXY_SYSTEM_PROMPT).toMatch(/PhD-level expert in short-form social video/);
     expect(CIXY_SYSTEM_PROMPT).toMatch(/defer to his direction/);
   });
