@@ -60,3 +60,7 @@ Entry format:
 ## 2026-10-14 — Content Bot Lead (Grok)
 - Changed: lib/ixis-companies.ts, components/IxisCompaniesFooter.tsx, app/layout.tsx, tests/ixis-companies.test.ts, docs/screenshots/, NOTES/GROK.md
 - Why: launch gap — "Other Ixis companies" footer with working links (canonical list from Apixis.dev)
+
+## 2026-10-14 — Content Bot Lead (Grok) via cloud agent
+- Changed: `lib/ixis-companies.ts`, `tests/ixis-companies.test.ts`, `docs/screenshots/b-footer-pricing.png`, `NOTES/GROK.md`
+- Why: Recovra merged into Deduxis. The old Recovra host returns 404, so Deduxis is labeled "Deduxis (incl. Recovra)" on https://deduxis.vercel.app (200) and Recovra links to https://deduxis.vercel.app/recover (200).

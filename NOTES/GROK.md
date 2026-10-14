@@ -143,7 +143,13 @@ Done 2026-10-04 ~18:45–19:15 CT on Awad's request (relayed by the Developer Bo
 - Undo: `git revert <squash sha of this PR>` (the sha is recorded in the PR and in /workspace/apixisid/STATUS.md on the box).
 
 ### 2026-10-14 4:25 PM CT — "Other Ixis companies" footer (branch `grok/ixis-footer-20261014`, draft)
-- **What:** Footer on every page listing the other Ixis companies, copied from the canonical `Apixis.dev/js/ixis-companies.js`. Each link checked with curl on 10/14 ~4:05 PM CT: all 200 except Recovra (`recovra-three.vercel.app` 404), which is left out. Uses the existing `.apixis-badge` style; no restyle, no SVG.
+- **What:** Footer on every page listing the other Ixis companies, copied from the canonical `Apixis.dev/js/ixis-companies.js`. Each link checked with curl on 10/14 ~4:05 PM CT: all 200 except Recovra (`recovra-three.vercel.app` 404). Uses the existing `.apixis-badge` style; no restyle, no SVG.
 - **Where:** `lib/ixis-companies.ts`, `components/IxisCompaniesFooter.tsx`, `app/layout.tsx`, `tests/ixis-companies.test.ts`, `docs/screenshots/b-footer-*.png`.
 - **Who:** Content Bot Lead (Grok).
 - **Undo:** close the draft PR, or revert its squash commit.
+
+### 2026-10-14 4:30 PM CT — Recovra points at Deduxis (same branch, follow-up)
+- **What:** Recovra has merged into Deduxis. Deduxis stays on the shared-list host `https://deduxis.vercel.app` (curl 200 on 10/14). Its footer label is `Deduxis (incl. Recovra)`. A Recovra entry was added to `https://deduxis.vercel.app/recover` (curl 200), the Recover section Deduxis took over. The dead host `recovra-three.vercel.app` (404) is not used. Footer screenshot retaken.
+- **Where:** `lib/ixis-companies.ts`, `tests/ixis-companies.test.ts`, `docs/screenshots/b-footer-pricing.png`, `NOTES/GROK.md`, `AI_CHANGELOG.md`.
+- **Who:** Content Bot Lead (Grok) via cloud agent.
+- **Undo:** revert this follow-up commit. Deduxis and Recovra then drop out of the footer again.
