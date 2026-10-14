@@ -1,11 +1,13 @@
 // Change note (Claude, Sep 2026): Sign-in required; lists only your jobs. See docs/LAUNCH_NOTES.md.
+// Card payments (2026-10-14): payment "card" runs a clip from a completed Checkout Session and does not call the Wallet.
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { listJobs } from "@/lib/db";
-import { queueAndRunWithPayment } from "@/lib/pipeline";
+import { CardClipError, queueAndRunWithCardPayment, queueAndRunWithPayment } from "@/lib/pipeline";
 import { toPublicJob } from "@/lib/public-job";
 import { createClient } from "@/lib/supabase/server";
 import { apixisOwner, apixisSubOf } from "@/lib/apixis-login";
+import { CARD_OFF_MESSAGE, cardPaymentsEnabled } from "@/lib/stripe-checkout";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -44,7 +46,37 @@ export async function POST(req: NextRequest) {
       niche?: string;
       orientation?: "vertical" | "horizontal";
       attemptId?: string;
-    };
+      payment?: string;
+      checkoutSessionId?: string;
+    } | null;
+
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Invalid video request" }, { status: 400 });
+    }
+
+    if (body.payment === "card") {
+      if (!cardPaymentsEnabled()) {
+        return NextResponse.json({ error: CARD_OFF_MESSAGE }, { status: 403 });
+      }
+      if (typeof body.checkoutSessionId !== "string" || !body.checkoutSessionId.trim()) {
+        return NextResponse.json({ error: "A completed card payment is required for this clip." }, { status: 402 });
+      }
+      try {
+        const job = await queueAndRunWithCardPayment({
+          ownerEmail: user.email,
+          checkoutSessionId: body.checkoutSessionId.trim(),
+        });
+        return NextResponse.json({ job: toPublicJob(job) }, { status: 201 });
+      } catch (err) {
+        if (err instanceof CardClipError) return NextResponse.json({ error: err.message }, { status: err.status });
+        console.warn(`pcb card job failed (${err instanceof Error ? err.message : "clip"})`);
+        return NextResponse.json({ error: "The clip could not be started." }, { status: 500 });
+      }
+    }
+
+    if (body.payment !== undefined && body.payment !== "ixis") {
+      return NextResponse.json({ error: "Invalid video request" }, { status: 400 });
+    }
 
     if (!body || typeof body !== "object" || typeof body.attemptId !== "string" || !/^[a-zA-Z0-9-]{10,50}$/.test(body.attemptId)) {
       return NextResponse.json(
