@@ -3,6 +3,7 @@ import { findJobByAttempt, insertJob, patchJob } from "./db";
 import { generateScriptWithSource } from "./script";
 import { renderJobMp4 } from "./render";
 import { redeem, buyIxisUrl } from "./apixis-wallet";
+import { table as jobsTable } from "./db";
 import type { Job, Orientation, Storyboard } from "./types";
 
 /**
@@ -129,7 +130,7 @@ export async function queueAndRunWithPayment(input: {
     unprovision: async (reservation, job) => {
       // Capture failed after job was created: delete the job row
       // (In a real system with user-visible history, mark as "unpaid" instead)
-      await fetch(`${process.env.SUPABASE_URL}/rest/v1/pcb_jobs?id=eq.${job.id}`, {
+      await fetch(`${process.env.SUPABASE_URL}/rest/v1/${jobsTable()}?id=eq.${job.id}`, {
         method: "DELETE",
         headers: {
           apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -144,7 +145,7 @@ export async function queueAndRunWithPayment(input: {
   });
 
   if (!result.ok) {
-    const buyUrl = buyIxisUrl("contentbot", "https://personalcontentbot.vercel.app");
+    const buyUrl = buyIxisUrl("contentbot", process.env.NEXT_PUBLIC_APP_URL || "https://personalcontentbot.vercel.app");
     throw new Error(
       `Not enough Ixis. You need ${result.needed} Ixis ($${(result.needed / 100).toFixed(2)}). Buy Ixis at ${buyUrl}`
     );

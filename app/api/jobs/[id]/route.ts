@@ -18,9 +18,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     if (!job) return NextResponse.json({ error: "Job not found" }, { status: 404 });
     return NextResponse.json({ job: toPublicJob(job) });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : String(err) },
-      { status: 500 },
-    );
+    console.error("jobs read failed:", err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: "Something went wrong loading your jobs. Try again." }, { status: 500 });
   }
 }

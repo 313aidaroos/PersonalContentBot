@@ -56,3 +56,7 @@ Entry format:
 ## 2026-10-04 — Grok (Content Bot Lead, Claude-review pass)
 - Changed: `lib/apixis-cixy.ts` — removed religious greeting/phrase/ruling lines from the shared Cixy core (Awad's lock: no religious content outside Halaxis); Cixy keeps warm hospitality and neutral greetings. `tests/cleanup.test.ts` asserts no religious terms in the Cixy prompt. Notes in `NOTES/GROK.md`.
 - Why: lock check of Claude's recent work. The canonical `ApixisWallet/sdk/apixis-cixy.ts` needs the same fix.
+
+## 2026-10-14 — Content Bot Lead (Grok)
+- Changed: lib/pipeline.ts, lib/db.ts, app/auth/actions.ts, app/auth/page.tsx, app/login/page.tsx (new), app/api/jobs/route.ts, app/api/jobs/[id]/route.ts, app/api/support/route.ts, app/api/cixy/route.ts, .env.example (env.example removed), package.json/package-lock.json (resend removed), supabase/pcb_jobs_durable.sql (header comment), README.md, docs/LAUNCH_NOTES.md, docs/LAUNCH_STATUS.md, docs/screenshots/, tests/cleanup.test.ts (title), NOTES/GROK.md
+- Why: launch prep bug fixes from the 10/14 repo review (no raw errors to users, configurable table/URL, one env example, /login 404)

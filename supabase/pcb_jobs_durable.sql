@@ -1,5 +1,5 @@
 -- Durable jobs (2026-09-30). Run once in the Supabase SQL editor of the project that holds
--- public.pcb_jobs (the shared hub project, ref myfclypikkcvfurrlsko), then set
+-- public.pcb_jobs (the shared hub project, ref myfclypikkcvfurkbzmj), then set
 -- PCB_DURABLE_JOBS=true on the PersonalContentBot Vercel project.
 --
 -- attempt_id            the client's per-click id: a retry after a lost response finds the SAME job

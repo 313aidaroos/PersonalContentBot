@@ -26,7 +26,8 @@ export async function magicLink(form: FormData) {
     if (/signups? not allowed|otp_disabled|user not found/i.test(`${error.code ?? ""} ${error.message}`)) {
       return { message: "No account uses this email yet. New here? Use Sign in with Apixis to create your account." };
     }
-    return { message: error.message };
+    console.error("magic link failed:", error.code ?? "", error.message);
+    return { message: "We couldn't send the sign-in link. Try again in a minute." };
   }
   
   return { 
@@ -44,7 +45,10 @@ export async function passwordLogin(form: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   
-  if (error) return { message: error.message };
+  if (error) {
+    console.error("password sign-in failed:", error.code ?? "", error.message);
+    return { message: "That email and password don't match. Try again or use the email link." };
+  }
   
   redirect(next);
 }
@@ -67,7 +71,10 @@ export async function setPassword(form: FormData) {
     data: { password_set: true } 
   });
   
-  if (error) return { message: error.message };
+  if (error) {
+    console.error("set password failed:", error.code ?? "", error.message);
+    return { message: "We couldn't save that password. Try a different one." };
+  }
   
   redirect(next);
 }
