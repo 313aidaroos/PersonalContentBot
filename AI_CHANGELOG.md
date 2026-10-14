@@ -56,3 +56,7 @@ Entry format:
 ## 2026-10-04 — Grok (Content Bot Lead, Claude-review pass)
 - Changed: `lib/apixis-cixy.ts` — removed religious greeting/phrase/ruling lines from the shared Cixy core (Awad's lock: no religious content outside Halaxis); Cixy keeps warm hospitality and neutral greetings. `tests/cleanup.test.ts` asserts no religious terms in the Cixy prompt. Notes in `NOTES/GROK.md`.
 - Why: lock check of Claude's recent work. The canonical `ApixisWallet/sdk/apixis-cixy.ts` needs the same fix.
+
+## 2026-10-14 — Content Bot Lead (Grok) via cloud agent
+- Changed: card checkout next to Ixis (`lib/stripe-checkout.ts`, webhook, billing page, clip jobs, `.env.example`, `supabase/migrations/20261014_pcb_payments.sql`). Notes in `NOTES/GROK.md`.
+- Why: ContentBot can take a card on the shared Apixis Dev LLC Stripe account, gated off until the flag and price ids are set. Ixis payments stay on the Wallet. The ledger SQL file was not applied.

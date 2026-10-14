@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Job } from "@/lib/types";
 import CixyChatWidget from "@/components/CixyChatWidget";
-import { formatIxis, formatUsd } from "@/lib/pricing";
+import { formatUsd } from "@/lib/pricing";
 
 export default function HomePage() {
   const router = useRouter();
@@ -15,6 +15,7 @@ export default function HomePage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [authed, setAuthed] = useState(false);
+  const [cardEnabled, setCardEnabled] = useState(false);
 
   async function refresh() {
     const res = await fetch("/api/jobs", { cache: "no-store" });
@@ -24,14 +25,12 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    // Check auth via Supabase session
     async function checkAuth() {
       try {
         const res = await fetch("/api/auth/session");
         const data = await res.json();
         
         if (!data.user) {
-          // Redirect to auth with current path as next
           const currentPath = window.location.pathname + window.location.search;
           router.push(`/auth?next=${encodeURIComponent(currentPath)}`);
           return;
@@ -39,6 +38,10 @@ export default function HomePage() {
         
         setAuthed(true);
         refresh().catch((e) => setError(e.message));
+        fetch("/api/stripe/checkout", { cache: "no-store" })
+          .then((r) => r.json())
+          .then((body) => setCardEnabled(Boolean(body.enabled)))
+          .catch(() => setCardEnabled(false));
       } catch (err) {
         router.push("/auth");
       }
@@ -47,12 +50,37 @@ export default function HomePage() {
     checkAuth();
   }, [router]);
 
+  useEffect(() => {
+    if (!authed) return;
+    const sessionId = new URLSearchParams(window.location.search).get("card_session");
+    if (!sessionId) return;
+    let cancelled = false;
+    setBusy(true);
+    setError(null);
+    fetch("/api/jobs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ payment: "card", checkoutSessionId: sessionId }),
+    })
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(typeof data.error === "string" ? data.error : "The clip could not be started.");
+        window.history.replaceState({}, "", "/");
+        window.location.href = `/jobs/${data.job.id}`;
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "The clip could not be started.");
+        setBusy(false);
+      });
+    return () => { cancelled = true; };
+  }, [authed]);
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      // Generate stable attemptId for this attempt
       const attemptId = `${Date.now()}-${Math.random().toString(36).slice(2, 15)}`;
       
       const res = await fetch("/api/jobs", {
@@ -63,7 +91,6 @@ export default function HomePage() {
       const data = await res.json();
       if (!res.ok) {
         if (res.status === 402) {
-          // 402 = insufficient Ixis, show buy link
           throw new Error(data.error || "Not enough Ixis");
         }
         throw new Error(data.error || "Queue failed");
@@ -78,7 +105,34 @@ export default function HomePage() {
     }
   }
 
-  if (!authed) return null; // Loading state
+  async function payByCard() {
+    setBusy(true);
+    setError(null);
+    try {
+      const attemptId = `${Date.now()}-${Math.random().toString(36).slice(2, 15)}`;
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sku: "contentbot.clip", returnTo: "home", idea, niche, orientation, attemptId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        router.push("/auth?next=/");
+        return;
+      }
+      if (!res.ok || typeof data.url !== "string") {
+        throw new Error(typeof data.error === "string" ? data.error : "Card checkout could not start.");
+      }
+      window.location.href = data.url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Card checkout could not start.");
+      setBusy(false);
+    }
+  }
+
+  if (!authed) return null;
+
+  const wantCard = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("pay") === "card";
 
   return (
     <main className="wrap">
@@ -88,6 +142,12 @@ export default function HomePage() {
           <p>One-minute social videos. 800 Ixis · $8 per clip. <a href="/pricing" style={{ color: "var(--accent)" }}>See pricing</a></p>
         </div>
         <div style={{ display: "flex", gap: "8px", position: "absolute", top: "20px", right: "20px" }}>
+          <button 
+            onClick={() => router.push("/billing")}
+            style={{ padding: "8px 16px", background: "var(--card)", color: "var(--ink)" }}
+          >
+            Billing
+          </button>
           <button 
             onClick={() => router.push("/pricing")}
             style={{ padding: "8px 16px", background: "var(--card)", color: "var(--ink)" }}
@@ -138,8 +198,19 @@ export default function HomePage() {
           <button type="submit" disabled={busy}>
             {busy ? "Running pipeline…" : "Redeem · 800 Ixis"}
           </button>
+          {cardEnabled ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={payByCard}
+              style={{ background: "var(--card)", color: "var(--ink)", border: "1px solid var(--line)" }}
+            >
+              {busy ? "Opening card checkout…" : `Pay by card · ${formatUsd(8)}`}
+            </button>
+          ) : null}
           <p style={{ margin: "8px 0 0", fontSize: "12px", color: "var(--muted)" }}>
             800 Ixis · $8 per video clip. <a href="/pricing" style={{ color: "var(--accent)" }}>See pricing</a>
+            {wantCard && cardEnabled ? " Card checkout is on. Pay by card uses the same $8 price." : ""}
           </p>
           {error ? <div className="err">{error}</div> : null}
         </form>

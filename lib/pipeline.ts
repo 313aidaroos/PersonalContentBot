@@ -3,6 +3,9 @@ import { findJobByAttempt, insertJob, patchJob } from "./db";
 import { generateScriptWithSource } from "./script";
 import { renderJobMp4 } from "./render";
 import { redeem, buyIxisUrl } from "./apixis-wallet";
+import { verifyPaidClip } from "./stripe-client";
+import { insertCardPayment } from "./payment-ledger";
+import { skuById } from "./stripe-checkout";
 import type { Job, Orientation, Storyboard } from "./types";
 
 /**
@@ -159,4 +162,93 @@ export async function queueAndRunWithPayment(input: {
     }
   }
   return result.result;
+}
+
+
+export class CardClipError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "CardClipError";
+    this.status = status;
+  }
+}
+
+const cardClipJobs = new Map<string, Job>();
+
+/**
+ * Run a clip that was already paid by card. Does not call the Wallet.
+ * queueAndRunWithPayment (Ixis) is unchanged.
+ */
+export async function queueAndRunWithCardPayment(input: {
+  ownerEmail: string;
+  checkoutSessionId: string;
+}): Promise<Job> {
+  let paid;
+  try {
+    paid = await verifyPaidClip(input.checkoutSessionId, input.ownerEmail);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "";
+    const known = /not |missing|could not|complete|account|clip|configured/i.test(message);
+    if (!known) console.warn(`pcb card clip rejected (${message || "stripe"})`);
+    throw new CardClipError(402, known ? message : "That card payment could not be used.");
+  }
+
+  const remembered = cardClipJobs.get(paid.sessionId);
+  if (remembered && remembered.status !== "failed") return remembered;
+  const existing = await findJobByAttempt(input.ownerEmail, paid.attemptId);
+  if (existing && existing.status !== "failed") return existing;
+
+  const clip = skuById("contentbot.clip");
+  await insertCardPayment({
+    owner_email: input.ownerEmail,
+    method: "card",
+    sku: "contentbot.clip",
+    description: clip?.name ?? "60s Video Clip",
+    amount_cents: paid.amountCents,
+    amount_ixis: clip?.ixis ?? null,
+    currency: paid.currency,
+    status: "paid",
+    stripe_checkout_session_id: paid.sessionId,
+    stripe_payment_intent_id: paid.paymentIntentId,
+    stripe_subscription_id: null,
+    stripe_event_id: `clip:${paid.sessionId}`,
+    renews_at: null,
+  });
+
+  try {
+    let job = await insertJob({
+      owner_email: input.ownerEmail.toLowerCase(),
+      idea: paid.idea,
+      niche: paid.niche,
+      orientation: paid.orientation,
+      duration_sec: 60,
+      attempt_id: paid.attemptId,
+    });
+    try {
+      job = await patchJob(job.id, { status: "scripting" });
+      const outcome = await generateScriptWithSource(job.idea, job.niche, job.orientation);
+      const script = outcome.script;
+      if (outcome.source === "template") {
+        console.warn(`pcb job ${job.id}: script fallback to template (${outcome.fallbackReason ?? "unknown"}); card charge already completed`);
+      }
+      job = await patchJob(job.id, { status: "rendering", script });
+      const storyboard = storyboardFrom({ ...job, script });
+      job = await patchJob(job.id, { storyboard });
+      const render = await renderJobMp4({ ...job, script, storyboard });
+      if (render.fallbackReason) console.warn(`pcb job ${job.id}: xAI hero clip skipped (${render.fallbackReason})`);
+      job = await patchJob(job.id, { status: "ready", storyboard, render, error: null });
+    } catch (err) {
+      console.warn(`pcb card clip render failed (${err instanceof Error ? err.message : "render"})`);
+      await patchJob(job.id, { status: "failed", error: "The clip could not be finished." });
+      throw err;
+    }
+    cardClipJobs.set(paid.sessionId, job);
+    return job;
+  } catch (err) {
+    cardClipJobs.delete(paid.sessionId);
+    if (err instanceof CardClipError) throw err;
+    console.warn(`pcb card clip failed (${err instanceof Error ? err.message : "render"})`);
+    throw new CardClipError(500, "The clip could not be finished. Your card payment is on the Billing page.");
+  }
 }
