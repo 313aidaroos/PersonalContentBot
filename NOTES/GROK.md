@@ -141,3 +141,9 @@ Done 2026-10-04 ~18:45–19:15 CT on Awad's request (relayed by the Developer Bo
 - What changed: Email magic links (`app/auth/actions.ts`) now use `shouldCreateUser: false`: existing accounts still get a link; a brand-new email gets "No account uses this email yet… use Sign in with Apixis". `/auth` hint under the email button now says the link is for existing accounts and links "Sign in with Apixis" (`/auth/apixis/start`, inherits the hint style). No password signup exists; password sign-in unchanged. (`/login` and `/signup` are not routes; 404 as before.) This app shares the hub Supabase project with qahwahworld.
 - Not changed: Supabase project setting "Allow new users to sign up" stays ON (Apixis SSO callback may create users through it). Theme, layout and styles unchanged. No Wallet, Stripe or Cixy files touched.
 - Undo: `git revert <squash sha of this PR>` (the sha is recorded in the PR and in /workspace/apixisid/STATUS.md on the box).
+
+### 2026-10-14 4:25 PM CT — "Other Ixis companies" footer (branch `grok/ixis-footer-20261014`, draft)
+- **What:** Footer on every page listing the other Ixis companies, copied from the canonical `Apixis.dev/js/ixis-companies.js`. Each link checked with curl on 10/14 ~4:05 PM CT: all 200 except Recovra (`recovra-three.vercel.app` 404), which is left out. Uses the existing `.apixis-badge` style; no restyle, no SVG.
+- **Where:** `lib/ixis-companies.ts`, `components/IxisCompaniesFooter.tsx`, `app/layout.tsx`, `tests/ixis-companies.test.ts`, `docs/screenshots/b-footer-*.png`.
+- **Who:** Content Bot Lead (Grok).
+- **Undo:** close the draft PR, or revert its squash commit.

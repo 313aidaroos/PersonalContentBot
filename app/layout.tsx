@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ApixisWalletChip } from "@/components/ApixisWalletChip";
+import { IxisCompaniesFooter } from "@/components/IxisCompaniesFooter";
 
 export const metadata: Metadata = {
   title: "PersonalContentBot",
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ApixisWalletChip />
         </div>
         {children}
+        <IxisCompaniesFooter />
       </body>
     </html>
   );
