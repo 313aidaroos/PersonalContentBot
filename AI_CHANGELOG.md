@@ -56,3 +56,7 @@ Entry format:
 ## 2026-10-04 — Grok (Content Bot Lead, Claude-review pass)
 - Changed: `lib/apixis-cixy.ts` — removed religious greeting/phrase/ruling lines from the shared Cixy core (Awad's lock: no religious content outside Halaxis); Cixy keeps warm hospitality and neutral greetings. `tests/cleanup.test.ts` asserts no religious terms in the Cixy prompt. Notes in `NOTES/GROK.md`.
 - Why: lock check of Claude's recent work. The canonical `ApixisWallet/sdk/apixis-cixy.ts` needs the same fix.
+
+## 2026-10-14 — Content Bot Lead (Grok)
+- Changed: lib/apixis-world.ts, lib/apixis-world-provision.ts (kit copies from Apixis.dev/sdk), app/api/world/agent/route.ts, components/ApixisWorldLink.tsx, app/layout.tsx, .env.example, tests/apixis-world.test.ts, docs/screenshots/, NOTES/GROK.md
+- Why: launch gap — Apixis world entry link and automatic world agent via the shared provision kit
