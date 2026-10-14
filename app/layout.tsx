@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ApixisWalletChip } from "@/components/ApixisWalletChip";
+import { ApixisWorldLink } from "@/components/ApixisWorldLink";
 
 export const metadata: Metadata = {
   title: "PersonalContentBot",
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             A Apixis Company
           </a>
           <ApixisWalletChip />
+          <ApixisWorldLink />
         </div>
         {children}
       </body>
