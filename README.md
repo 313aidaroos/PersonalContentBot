@@ -32,7 +32,7 @@ Buy Ixis at [Apixis Wallet](https://apixis-wallet.vercel.app). Redeem inside Con
 
 ```
 npm install
-cp env.example .env.local   # or use the existing .env.local
+cp .env.example .env.local   # or use the existing .env.local
 npm run setup-db
 npm run dev
 ```

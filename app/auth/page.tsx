@@ -7,6 +7,13 @@ import { magicLink, passwordLogin } from "./actions";
 function AuthForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/";
+  const signInError = searchParams.get("error");
+  // Apixis sign-in failures arrive as ?error=<code> (via /login → /auth). Show a plain line, never the raw code.
+  const errorText = signInError
+    ? signInError === "login_expired"
+      ? "That Apixis sign-in expired. Try Sign in with Apixis again."
+      : "Apixis sign-in didn't finish. Try again."
+    : null;
   
   const [tab, setTab] = useState<"magic" | "password">("magic");
   const [email, setEmail] = useState("");
@@ -31,6 +38,7 @@ function AuthForm() {
   return (
     <section className="card" style={{ maxWidth: "500px", margin: "100px auto" }}>
       <h2>Sign In</h2>
+      {errorText && !message && <p role="alert" style={{ color: "var(--warn)" }}>{errorText}</p>}
       
       <div style={{ display: "flex", gap: "8px", marginBottom: "24px", borderBottom: "1px solid var(--line)" }}>
         <button

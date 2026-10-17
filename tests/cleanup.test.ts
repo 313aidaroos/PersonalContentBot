@@ -83,7 +83,7 @@ describe("Cixy persona", () => {
   });
 });
 
-describe("Wallet host (env.example value)", () => {
+describe("Wallet host (.env.example value)", () => {
   it("host-only APIXIS_WALLET_API_URL gives /buy and /api/v1 paths, never /api/v1/buy", async () => {
     const prev = process.env.APIXIS_WALLET_API_URL;
     process.env.APIXIS_WALLET_API_URL = "https://apixis-wallet.vercel.app";

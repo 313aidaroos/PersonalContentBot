@@ -79,10 +79,9 @@ export async function POST(req: NextRequest) {
     };
 
     if (data.error) {
-      return NextResponse.json(
-        { error: data.error.message },
-        { status: 400 }
-      );
+      console.error("Cixy provider error:", data.error.type, data.error.message);
+      const fallback = cixyUnavailableReply(null);
+      return NextResponse.json({ error: fallback.reply, reply: fallback.reply, code: "cixy_unavailable" }, { status: fallback.status });
     }
 
     const textContent = data.content?.find((c) => c.type === "text")?.text || "";

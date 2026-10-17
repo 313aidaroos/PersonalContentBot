@@ -61,9 +61,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Support request failed" },
-      { status: 500 }
-    );
+    console.error("support request failed:", err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: "We couldn't send your request. Try again in a minute." }, { status: 500 });
   }
 }

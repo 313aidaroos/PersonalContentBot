@@ -7,7 +7,7 @@ function required(name: string): string {
   return v;
 }
 
-function table() {
+export function table() {
   return process.env.PCB_JOBS_TABLE || "pcb_jobs";
 }
 

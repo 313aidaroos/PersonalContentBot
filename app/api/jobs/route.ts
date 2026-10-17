@@ -18,10 +18,8 @@ export async function GET() {
     const jobs = await listJobs(user.email, apixisSubOf(user));
     return NextResponse.json({ jobs: jobs.map(toPublicJob) });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : String(err) },
-      { status: 500 },
-    );
+    console.error("jobs read failed:", err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ error: "Something went wrong loading your jobs. Try again." }, { status: 500 });
   }
 }
 
@@ -71,6 +69,11 @@ export async function POST(req: NextRequest) {
     let status = 500;
     if (message.includes("too short") || message.includes("too long")) status = 400;
     if (message.includes("Not enough Ixis")) status = 402;
+    // Only our own user-facing messages go to the browser; provider/DB errors stay in the logs.
+    if (status === 500) {
+      console.error("job create failed:", message);
+      return NextResponse.json({ error: "We couldn't start that video. Try again." }, { status });
+    }
     return NextResponse.json({ error: message }, { status });
   }
 }
