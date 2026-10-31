@@ -60,3 +60,6 @@ Entry format:
 ## 2026-10-14 — Content Bot Lead (Grok)
 - Changed: lib/pipeline.ts, lib/db.ts, app/auth/actions.ts, app/auth/page.tsx, app/login/page.tsx (new), app/api/jobs/route.ts, app/api/jobs/[id]/route.ts, app/api/support/route.ts, app/api/cixy/route.ts, .env.example (env.example removed), package.json/package-lock.json (resend removed), supabase/pcb_jobs_durable.sql (header comment), README.md, docs/LAUNCH_NOTES.md, docs/LAUNCH_STATUS.md, docs/screenshots/, tests/cleanup.test.ts (title), NOTES/GROK.md
 - Why: launch prep bug fixes from the 10/14 repo review (no raw errors to users, configurable table/URL, one env example, /login 404)
+## 2026-10-30 — Juno (Muse)
+- Changed: `lib/script.ts` — DEFAULT_SCRIPT_MODEL claude-sonnet-4-5 -> claude-sonnet-4-6.
+- Why: Anthropic retires claude-sonnet-4-5 on Nov 30, 2026; the script generator used it as the fallback whenever ANTHROPIC_MODEL is unset, so scripts would have broken that day. 4-6 matches the family default.
