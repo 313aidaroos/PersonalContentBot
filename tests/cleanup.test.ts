@@ -58,7 +58,7 @@ describe("script fallback + model", () => {
 
   it("uses ANTHROPIC_MODEL, else the previous hard-coded model", () => {
     expect(scriptModel()).toBe(DEFAULT_SCRIPT_MODEL);
-    expect(DEFAULT_SCRIPT_MODEL).toBe("claude-sonnet-4-5");
+    expect(DEFAULT_SCRIPT_MODEL).toBe("claude-sonnet-4-6");
     process.env.ANTHROPIC_MODEL = "claude-test-model";
     expect(scriptModel()).toBe("claude-test-model");
   });

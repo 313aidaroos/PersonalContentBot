@@ -63,3 +63,7 @@ Entry format:
 ## 2026-10-30 — Juno (Muse)
 - Changed: `lib/script.ts` — DEFAULT_SCRIPT_MODEL claude-sonnet-4-5 -> claude-sonnet-4-6.
 - Why: Anthropic retires claude-sonnet-4-5 on Nov 30, 2026; the script generator used it as the fallback whenever ANTHROPIC_MODEL is unset, so scripts would have broken that day. 4-6 matches the family default.
+
+## 2026-11-01 — Juno (Muse)
+- Changed: `tests/cleanup.test.ts` — pinned DEFAULT_SCRIPT_MODEL expectation claude-sonnet-4-5 -> claude-sonnet-4-6.
+- Why: the Oct 30 model fix in PR #22 changed the default, but this test still expected the retired model, so CI stayed red. Test now matches the new default.
