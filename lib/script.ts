@@ -105,7 +105,7 @@ function isBeat(x: unknown): x is LlmBeat {
 }
 
 /** Used when ANTHROPIC_MODEL is unset. */
-export const DEFAULT_SCRIPT_MODEL = "claude-sonnet-4-5";
+export const DEFAULT_SCRIPT_MODEL = "claude-sonnet-4-6";
 
 export function scriptModel(): string {
   return process.env.ANTHROPIC_MODEL?.trim() || DEFAULT_SCRIPT_MODEL;
